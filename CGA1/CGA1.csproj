@@ -74,6 +74,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Command\DelegateCommand.cs" />
+    <Compile Include="Model\Matrices.cs" />
     <Compile Include="Model\Obj.cs" />
     <Compile Include="Model\ObjParser.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
