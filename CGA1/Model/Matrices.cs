@@ -1,87 +1,43 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace CGA1.Model
 {
     public static class Matrices
     {
-        private static float Sin(float value)
-        {
-            return (float)Math.Sin(value);
-        }
-
-        private static float Cos(float value)
-        {
-            return (float)Math.Cos(value);
-        }
-
-        public static Matrix4x4 TranslationMatrix(Vector3 translation)
-        {
-            return TranslationMatrix(translation.X, translation.Y, translation.Z);
-        }
-
-        public static Matrix4x4 TranslationMatrix(float x, float y, float z)
+        public static Matrix4x4 CreateViewportMatrix(int minX, int minY, int width, int height)
         {
             return new Matrix4x4(
-                1, 0, 0, x,
-                0, 1, 0, y,
-                0, 0, 1, z,
-                0, 0, 0, 1);
-        }
-
-        public static Matrix4x4 ScaleMatrix(float scale)
-        {
-            return new Matrix4x4(
-                scale, 0, 0, 0,
-                0, scale, 0, 0,
-                0, 0, scale, 0,
-                0, 0, 0, 1);
-        }
-
-        public static Matrix4x4 RotationXMatrix(float angle)
-        {
-            return new Matrix4x4(
-                1, 0, 0, 0,
-                0, Cos(angle), -Sin(angle), 0,
-                0, Sin(angle), Cos(angle), 0,
-                0, 0, 0, 1);
-        }
-
-        public static Matrix4x4 RotationYMatrix(float angle)
-        {
-            return new Matrix4x4(
-                Cos(angle), 0, Sin(angle), 0,
-                0, 1, 0, 0,
-                -Sin(angle), 0, Cos(angle), 0,
-                0, 0, 0, 1);
-        }
-
-        public static Matrix4x4 RotationZMatrix(float angle)
-        {
-            return new Matrix4x4(
-                Cos(angle), -Sin(angle), 0, 0,
-                Sin(angle), Cos(angle), 0, 0,
+                width / 2, 0, 0, minX + (width / 2),
+                0, -height / 2, 0, minY + (height / 2),
                 0, 0, 1, 0,
                 0, 0, 0, 1);
         }
 
-        public static Matrix4x4 RotationMatrix(Vector3 rotation)
+        public static Matrix4x4 CreateWorldMatrix(Vector3 translation, float scale, float yaw, float pitch, float roll)
         {
-            return RotationMatrix(rotation.X, rotation.Y, rotation.Z);
+            return Matrix4x4.CreateTranslation(translation) *
+                Matrix4x4.CreateScale(scale) *
+                Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, roll);
         }
 
-        public static Matrix4x4 RotationMatrix(float angleX, float angleY, float angleZ)
+        public static Matrix4x4 CreateViewerMatrix(Vector3 camera, float yaw, float pitch, float roll)
         {
-            return RotationXMatrix(angleX) *
-                RotationYMatrix(angleY) *
-                RotationZMatrix(angleZ);
+            return Matrix4x4.CreateTranslation(-camera) *
+                Matrix4x4.Transpose(Matrix4x4.CreateFromYawPitchRoll(yaw, pitch, roll));
         }
 
-        public static Matrix4x4 ModelMatrix(Vector3 translation, Vector3 rotation, float scale)
+        public static Matrix4x4 GetWorldProjectionMatrix(float fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance)
         {
-            return TranslationMatrix(translation) *
-                RotationMatrix(rotation) *
-                ScaleMatrix(scale);
+            return Matrix4x4.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearPlaneDistance, farPlaneDistance);
+        }
+
+
+        public static Matrix4x4 CreateMatrix(Vector3 camera, Vector3 translation, float scale, float yaw, float pitch, float roll,
+            float fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance)
+        {
+            return CreateWorldMatrix(translation, scale, yaw, pitch, roll) *
+                CreateViewerMatrix(camera, yaw, pitch, roll) *
+                GetWorldProjectionMatrix(fieldOfView, aspectRatio, nearPlaneDistance, farPlaneDistance);
         }
     }
 }

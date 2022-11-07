@@ -1,5 +1,4 @@
-﻿using Ardalis.GuardClauses;
-using System;
+﻿using System;
 using System.Windows.Input;
 
 namespace CGA1.Command
@@ -13,7 +12,7 @@ namespace CGA1.Command
 
         public DelegateCommand(Action<object> execute, Predicate<object> canExecute = null)
         {
-            _execute = Guard.Against.Null(execute, nameof(execute));
+            _execute = execute;
             _canExecute = canExecute ?? AnyTrue;
         }
 
@@ -25,6 +24,6 @@ namespace CGA1.Command
 
         public bool CanExecute(object parameter) => _canExecute(parameter);
 
-        public void Execute(object parameter) => _execute(parameter);
+        public void Execute(object parameter) => _execute?.Invoke(parameter);
     }
 }

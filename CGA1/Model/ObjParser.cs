@@ -46,7 +46,13 @@ namespace CGA1.Model
                         break;
                 }
             }
-            return new Obj(vertices, textures, normals, faces);
+            return new Obj()
+            { 
+                Vertices = vertices, 
+                Textures = textures,
+                Normals = normals,
+                Faces = faces 
+            };
         }
 
         private Vector4 ParseVertex(IEnumerable<string> args)

@@ -1,22 +1,26 @@
-﻿using Ardalis.GuardClauses;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace CGA1.Model
 {
     public class Obj
     {
-        public IList<Vector4> Points { get; }
-        public IList<Vector3> Textures { get; }
-        public IList<Vector3> Normals { get; }
-        public IList<IList<Vector3>> Faces { get; }
+        public IList<Vector4> Vertices { get; set; }
+        public IList<Vector3> Textures { get; set; }
+        public IList<Vector3> Normals { get; set; }
+        public IList<IList<Vector3>> Faces { get; set; }
 
-        public Obj(IList<Vector4> points, IList<Vector3> textures, IList<Vector3> normals, IList<IList<Vector3>> faces)
+        public void Transform(Matrix4x4 matrix, Matrix4x4 viewportMatrix, Matrix4x4 worldMatrix)
         {
-            Points = Guard.Against.Null(points, nameof(points));
-            Textures = Guard.Against.Null(textures, nameof(textures));
-            Normals = Guard.Against.Null(normals, nameof(normals));
-            Faces = Guard.Against.Null(faces, nameof(faces));
+            Vertices = Vertices.Select(v => Vector4.Transform(v, matrix) / v.W)
+                .Zip(Vertices.Select(v => Vector4.Transform(v, viewportMatrix)), 
+                    (v1, v2) => { v1.W = v2.W; return v1; })
+                .ToList();
+
+            Normals = Normals
+                .Select(normal => Vector3.Normalize(Vector3.TransformNormal(normal, worldMatrix)))
+                .ToList();
         }
     }
 }
