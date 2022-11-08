@@ -7,9 +7,9 @@ using System.Numerics;
 
 namespace CGA1.Model
 {
-    public class ObjParser
+    public static class ObjParser
     {
-        public Obj Parse(TextReader reader)
+        public static Obj Parse(TextReader reader)
         {
             var vertices = new List<Vector4>();
             var textures = new List<Vector3>();
@@ -47,15 +47,15 @@ namespace CGA1.Model
                 }
             }
             return new Obj()
-            { 
-                Vertices = vertices, 
+            {
+                Vertices = vertices,
                 Textures = textures,
                 Normals = normals,
-                Faces = faces 
+                Faces = faces
             };
         }
 
-        private Vector4 ParseVertex(IEnumerable<string> args)
+        private static Vector4 ParseVertex(IEnumerable<string> args)
         {
             using (var e = args.GetEnumerator())
             {
@@ -67,7 +67,7 @@ namespace CGA1.Model
             }
         }
 
-        private Vector3 ParseTexture(IEnumerable<string> args)
+        private static Vector3 ParseTexture(IEnumerable<string> args)
         {
             using (var e = args.GetEnumerator())
             {
@@ -78,7 +78,7 @@ namespace CGA1.Model
             }
         }
 
-        private Vector3 ParseNormal(IEnumerable<string> args)
+        private static Vector3 ParseNormal(IEnumerable<string> args)
         {
             using (var e = args.GetEnumerator())
             {
@@ -89,7 +89,7 @@ namespace CGA1.Model
             }
         }
 
-        private Vector3 ParseFace(IEnumerable<string> args)
+        private static Vector3 ParseFace(IEnumerable<string> args)
         {
             using (var e = args.GetEnumerator())
             {
@@ -100,7 +100,7 @@ namespace CGA1.Model
             }
         }
 
-        private float ParseFloat(string s)
+        private static float ParseFloat(string s)
         {
             return float.Parse(s, CultureInfo.InvariantCulture);
         }
