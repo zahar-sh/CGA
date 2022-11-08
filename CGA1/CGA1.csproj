@@ -71,9 +71,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Command\DelegateCommand.cs" />
+    <Compile Include="Model\Bresenham.cs" />
     <Compile Include="Model\Matrices.cs" />
     <Compile Include="Model\Obj.cs" />
     <Compile Include="Model\ObjParser.cs" />
+    <Compile Include="Model\VectorExtensions.cs" />
     <Compile Include="Model\WritableImage.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="View\MainWindow.xaml.cs">
