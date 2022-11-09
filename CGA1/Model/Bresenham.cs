@@ -11,10 +11,13 @@ namespace CGA1.Model
 
         public WritableImage Image { get; }
 
-        public Bresenham(Obj obj, WritableImage image)
+        public Color Color { get; }
+
+        public Bresenham(Obj obj, WritableImage image, Color color)
         {
             Obj = obj;
             Image = image;
+            Color=color;
         }
 
         private static Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
@@ -107,13 +110,13 @@ namespace CGA1.Model
             DrawPoint((int)desc.X, (int)desc.Y, desc.Z);
         }
 
-        private void DrawPoint(int x, int y, float z, Color color = default)
+        private void DrawPoint(int x, int y, float z)
         {
             if (x > 0 && x < Image.Width &&
                 y > 0 && y < Image.Height &&
                 z > 0 && z < 1)
             {
-                Image[x, y] = color;
+                Image[x, y] = Color;
             }
         }
     }
