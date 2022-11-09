@@ -18,9 +18,9 @@ namespace CGA1.Model
 
         public int Height { get => Source.PixelHeight; }
 
-        public WritableImage(WriteableBitmap source)
+        public WritableImage(int width, int height)
         {
-            Source = source;
+            Source = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
         }
 
         public bool IsValidIndexes(int x, int y)
@@ -42,19 +42,19 @@ namespace CGA1.Model
             get
             {
                 byte* address = GetAddress(x, y);
-                var a = address[0];
-                var r = address[1];
-                var g = address[2];
-                var b = address[3];
+                var a = address[3];
+                var r = address[2];
+                var g = address[1];
+                var b = address[0];
                 return Color.FromArgb(a, r, g, b);
             }
             set
             {
                 byte* address = GetAddress(x, y);
-                address[0] = value.A;
-                address[1] = value.R;
-                address[2] = value.G;
-                address[3] = value.B;
+                address[3] = value.A;
+                address[2] = value.R;
+                address[1] = value.G;
+                address[0] = value.B;
             }
         }
     }

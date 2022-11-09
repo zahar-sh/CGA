@@ -1,10 +1,9 @@
-﻿using System.Windows.Media.Imaging;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
 namespace CGA1.Model
 {
     public interface IObjPainter
     {
-        void Paint(Obj obj, WriteableBitmap bitmap, Color color);
+        void Paint(Obj obj, WritableImage image, Color color);
     }
 }
