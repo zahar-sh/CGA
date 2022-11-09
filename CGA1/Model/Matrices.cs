@@ -129,10 +129,5 @@ namespace CGA1.Model
                 0, 0, 1, 0,
                 0, 0, 0, 1);
         }
-
-        public static Matrix4x4 CreateMatrix(Matrix4x4 viewportMatrix, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix, Matrix4x4 modelMatrix)
-        {
-            return viewportMatrix * projectionMatrix * viewMatrix * modelMatrix;
-        }
     }
 }
