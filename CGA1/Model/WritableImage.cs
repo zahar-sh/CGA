@@ -7,10 +7,15 @@ namespace CGA1.Model
     public class WritableImage
     {
         public WriteableBitmap Source { get; private set; }
+
         private long BackBuffer { get => Source.BackBuffer.ToInt64(); }
+
         private int BackBufferStride { get => Source.BackBufferStride; }
+
         private int BytesPerPixel { get => Source.Format.BitsPerPixel / 8; }
+
         public int Width { get => Source.PixelWidth; }
+
         public int Height { get => Source.PixelHeight; }
 
         public WritableImage(WriteableBitmap source)

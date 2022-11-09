@@ -8,6 +8,7 @@ namespace CGA1.Model
     public class Bresenham
     {
         public Obj Obj { get; }
+
         public WritableImage Image { get; }
 
         public Bresenham(Obj obj, WritableImage image)
