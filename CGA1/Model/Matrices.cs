@@ -5,11 +5,6 @@ namespace CGA1.Model
 {
     public static class Matrices
     {
-        public static Matrix4x4 CreateTranslation(Vector3 v)
-        {
-            return CreateTranslation(v.X, v.Y, v.Z);
-        }
-
         public static Matrix4x4 CreateTranslation(float x, float y, float z)
         {
             return new Matrix4x4(
@@ -61,23 +56,11 @@ namespace CGA1.Model
                 0, 0, 0, 1);
         }
 
-        public static Matrix4x4 CreateRotation(Vector3 v)
-        {
-            return CreateRotation(v.X, v.Y, v.Z);
-        }
-
         public static Matrix4x4 CreateRotation(float angleX, float angleY, float angleZ)
         {
             return CreateRotationX(angleX) *
                 CreateRotationY(angleY) *
                 CreateRotationZ(angleZ);
-        }
-
-        public static Matrix4x4 CreateModelMatrix(Vector3 translation, Vector3 rotation, float scale)
-        {
-            return CreateTranslation(translation) *
-                CreateRotation(rotation) *
-                CreateScale(scale);
         }
 
         public static Matrix4x4 CreateModelMatrix(float x, float y, float z, float angleX, float angleY, float angleZ, float scale)
@@ -87,10 +70,10 @@ namespace CGA1.Model
                 CreateScale(scale);
         }
 
-        public static Matrix4x4 CreateViewMatrix(Vector3 eye, Vector3 rotation)
+        public static Matrix4x4 CreateViewMatrix(float x, float y, float z, float angleX, float angleY, float angleZ)
         {
-            return CreateTranslation(-eye.X, -eye.Y, -eye.Z) *
-                Matrix4x4.Transpose(CreateRotation(rotation.X, rotation.Y, rotation.Z));
+            return CreateTranslation(-x, -y, -z) *
+                Matrix4x4.Transpose(CreateRotation(angleX, angleY, angleZ));
         }
 
         public static Matrix4x4 CreateProjectionBySize(float width, float height, float near, float far)

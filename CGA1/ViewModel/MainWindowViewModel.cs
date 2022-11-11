@@ -8,12 +8,33 @@ using Microsoft.Win32;
 using System.IO;
 using System.Windows.Controls;
 using System;
-using System.Numerics;
 
 namespace CGA1.ViewModel
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
+
+        private float _modelPosX;
+        private float _modelPosY;
+        private float _modelPosZ;
+
+        private float _modelYaw;
+        private float _modelPitch;
+        private float _modelRoll;
+
+        private float _modelScale;
+
+        private float _cameraPosX;
+        private float _cameraPosY;
+        private float _cameraPosZ;
+
+        private float _cameraYaw;
+        private float _cameraPitch;
+        private float _cameraRoll;
+
+        private Color _color;
+
+        private IObjPainter _objPainter;
 
         private Obj _obj;
         private Image _image;
@@ -26,123 +47,31 @@ namespace CGA1.ViewModel
                 Title = "Select assembly",
                 Multiselect = false
             };
-            LoadObjCommand = new DelegateCommand(o =>
-            {
-                var open = FileDialog.ShowDialog();
-                if (open != null && open.Value)
-                {
-                    var fileName = FileDialog.FileName;
-                    using (var reader = new StreamReader(new FileStream(fileName, FileMode.Open)))
-                    {
-                        Obj = ObjParser.Parse(reader);
-                    }
-                }
-            });
-            RepaintCommand= new DelegateCommand(o =>
-            {
-                var width = ImageWidth;
-                var height = ImageHeight;
-                var image = new WritableImage(width, height);
-                var viewportMatrix = Matrices.CreateViewportMatrix(0, 0, width, height);
-                var projectionMatrix = Matrices.CreateProjectionByAspect((float)width / height, ToRadians(60), 0.1f, 100.0f);
-
-                var viewMatrix = Matrices.CreateViewMatrix(CameraPosition, CameraRotation);
-                var modelMatrix = Matrices.CreateModelMatrix(ModelPosition, ModelRotation, ModelScale);
-                var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
-
-                ObjPainter.Paint(model, image, Color);
-
-                Image.Source = image.Source;
-
-                NotifyPropertyChanged(nameof(Image));
-            });
+            LoadObjCommand = new DelegateCommand(o => LoadObj());
+            RepaintCommand= new DelegateCommand(o => Repaint());
         }
 
-        public int ImageWidth
-        {
-            get
-            {
-                return (int)Image.ActualWidth;
-            }
-        }
+        public float ModelPosX { get => _modelPosX; set => SetProperty(ref _modelPosX, value); }
+        public float ModelPosY { get => _modelPosY; set => SetProperty(ref _modelPosY, value); }
+        public float ModelPosZ { get => _modelPosZ; set => SetProperty(ref _modelPosZ, value); }
 
-        public int ImageHeight
-        {
-            get
-            {
-                return (int)Image.ActualHeight;
-            }
-        }
+        public float ModelYaw { get => _modelYaw; set => SetProperty(ref _modelYaw, value); }
+        public float ModelPitch { get => _modelPitch; set => SetProperty(ref _modelPitch, value); }
+        public float ModelRoll { get => _modelRoll; set => SetProperty(ref _modelRoll, value); }
 
-        public Vector3 ModelPosition
-        {
-            get
-            {
-                var x = (float)(ModelPositionXSlider.Value);
-                var y = (float)(ModelPositionYSlider.Value);
-                var z = (float)(ModelPositionZSlider.Value);
-                return new Vector3(x, y, z);
-            }
-        }
+        public float ModelScale { get => _modelScale; set => SetProperty(ref _modelScale, value); }
 
-        public Vector3 ModelRotation
-        {
-            get
-            {
-                var yaw = (float)(ModelYawSlider.Value * Math.PI / 180);
-                var pitch = (float)(ModelPitchSlider.Value * Math.PI / 180);
-                var roll = (float)(ModelRollSlider.Value * Math.PI / 180);
-                return new Vector3(yaw, pitch, roll);
-            }
-        }
+        public float CameraPosX { get => _cameraPosX; set => SetProperty(ref _cameraPosX, value); }
+        public float CameraPosY { get => _cameraPosY; set => SetProperty(ref _cameraPosY, value); }
+        public float CameraPosZ { get => _cameraPosZ; set => SetProperty(ref _cameraPosZ, value); }
 
-        private float ModelScale
-        {
-            get
-            {
-                return (float)(ModelScaleSlider.Value);
-            }
-        }
+        public float CameraYaw { get => _cameraYaw; set => SetProperty(ref _cameraYaw, value); }
+        public float CameraPitch { get => _cameraPitch; set => SetProperty(ref _cameraPitch, value); }
+        public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value); }
 
-        public Vector3 CameraPosition
-        {
-            get
-            {
-                var x = (float)(CameraPositionXSlider.Value);
-                var y = (float)(CameraPositionYSlider.Value);
-                var z = (float)(CameraPositionZSlider.Value);
-                return new Vector3(x, y, z);
-            }
-        }
+        public Color Color { get => _color; set => SetProperty(ref _color, value); }
 
-        public Vector3 CameraRotation
-        {
-            get
-            {
-                var yaw = (float)(CameraYawSlider.Value * Math.PI / 180);
-                var pitch = (float)(CameraPitchSlider.Value * Math.PI / 180);
-                var roll = (float)(CameraRollSlider.Value * Math.PI / 180);
-                return new Vector3(yaw, pitch, roll);
-            }
-        }
-
-        public Color Color
-        {
-            get
-            {
-                return default;
-            }
-        }
-
-        public IObjPainter ObjPainter
-        {
-            get
-            {
-                return new BresenhamPainter();
-            }
-        }
-
-        private FileDialog FileDialog { get; }
+        public IObjPainter ObjPainter { get => _objPainter; set => SetProperty(ref _objPainter, value); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value); }
 
@@ -151,6 +80,8 @@ namespace CGA1.ViewModel
         public ICommand LoadObjCommand { get; }
 
         public ICommand RepaintCommand { get; }
+
+        private FileDialog FileDialog { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -168,6 +99,39 @@ namespace CGA1.ViewModel
         protected void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void LoadObj()
+        {
+            var open = FileDialog.ShowDialog();
+            if (open != null && open.Value)
+            {
+                var fileName = FileDialog.FileName;
+                using (var reader = new StreamReader(new FileStream(fileName, FileMode.Open)))
+                {
+                    Obj = ObjParser.Parse(reader);
+                }
+            }
+        }
+
+        private void Repaint()
+        {
+            var width = (int)Image.ActualWidth;
+            var height = (int)Image.ActualHeight;
+            var image = new WritableImage(width, height);
+
+            var viewportMatrix = Matrices.CreateViewportMatrix(0, 0, width, height);
+            var projectionMatrix = Matrices.CreateProjectionByAspect((float)width / height, ToRadians(60), 0.1f, 100.0f);
+            var viewMatrix = Matrices.CreateViewMatrix(CameraPosX, CameraPosY, CameraPosZ, CameraYaw, CameraPitch, CameraRoll);
+            var modelMatrix = Matrices.CreateModelMatrix(ModelPosX, ModelPosY, ModelPosZ, ModelYaw, ModelPitch, ModelRoll, ModelScale);
+
+            var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
+
+            ObjPainter.Paint(model, image, Color);
+
+            Image.Source = image.Source;
+
+            NotifyPropertyChanged(nameof(Image));
         }
 
         private static float ToRadians(float radians)
