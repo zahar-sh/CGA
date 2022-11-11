@@ -1,18 +1,17 @@
 ﻿using CGA1.Command;
 using CGA1.Model;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using System.IO;
-using System.Windows.Controls;
 using System;
 
 namespace CGA1.ViewModel
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
+        private float _fov;
 
         private float _modelPosX;
         private float _modelPosY;
@@ -32,15 +31,20 @@ namespace CGA1.ViewModel
         private float _cameraPitch;
         private float _cameraRoll;
 
-        private Color _color;
-
         private IObjPainter _objPainter;
 
         private Obj _obj;
-        private Image _image;
+
+        private WritableImage _image;
+
+        private Color _color;
 
         public MainWindowViewModel()
         {
+            Image = new WritableImage(450, 450);
+            Fov = ToRadians(60);
+            ObjPainter = new BresenhamPainter();
+            Color = Color.FromArgb(128, 0, 0, 255);
             FileDialog = new OpenFileDialog
             {
                 Filter = "Object | *.obj",
@@ -50,6 +54,8 @@ namespace CGA1.ViewModel
             LoadObjCommand = new DelegateCommand(o => LoadObj());
             RepaintCommand= new DelegateCommand(o => Repaint());
         }
+
+        public float Fov { get => _fov; set => SetProperty(ref _fov, value, nameof(Fov)); }
 
         public float ModelPosX { get => _modelPosX; set => SetProperty(ref _modelPosX, value, nameof(ModelPosX)); }
         public float ModelPosY { get => _modelPosY; set => SetProperty(ref _modelPosY, value, nameof(ModelPosY)); }
@@ -69,13 +75,13 @@ namespace CGA1.ViewModel
         public float CameraPitch { get => _cameraPitch; set => SetProperty(ref _cameraPitch, value, nameof(CameraPitch)); }
         public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value, nameof(CameraRoll)); }
 
-        public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
-
         public IObjPainter ObjPainter { get => _objPainter; set => SetProperty(ref _objPainter, value, nameof(ObjPainter)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
 
-        public Image Image { get => _image; set => SetProperty(ref _image, value, nameof(Image)); }
+        public WritableImage Image { get => _image; set => SetProperty(ref _image, value, nameof(Image)); }
+
+        public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
 
         public ICommand LoadObjCommand { get; }
 
@@ -116,20 +122,18 @@ namespace CGA1.ViewModel
 
         private void Repaint()
         {
-            var width = (int)Image.ActualWidth;
-            var height = (int)Image.ActualHeight;
-            var image = new WritableImage(width, height);
-
+            if (ObjPainter is null || Obj is null || Image is null)
+                return;
+            var width = Image.Width;
+            var height = Image.Height;
             var viewportMatrix = Matrices.CreateViewportMatrix(0, 0, width, height);
-            var projectionMatrix = Matrices.CreateProjectionByAspect((float)width / height, ToRadians(60), 0.1f, 100.0f);
-            var viewMatrix = Matrices.CreateViewMatrix(CameraPosX, CameraPosY, CameraPosZ, CameraYaw, CameraPitch, CameraRoll);
-            var modelMatrix = Matrices.CreateModelMatrix(ModelPosX, ModelPosY, ModelPosZ, ModelYaw, ModelPitch, ModelRoll, ModelScale);
+            var projectionMatrix = Matrices.CreateProjectionByAspect((float)width / height, ToRadians(Fov), 0.1f, 100.0f);
+            var viewMatrix = Matrices.CreateViewMatrix(CameraPosX, CameraPosY, CameraPosZ, ToRadians(CameraYaw), ToRadians(CameraPitch), ToRadians(CameraRoll));
+            var modelMatrix = Matrices.CreateModelMatrix(ModelPosX, ModelPosY, ModelPosZ, ToRadians(ModelYaw), ToRadians(ModelPitch), ToRadians(ModelRoll), ModelScale);
 
             var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
 
-            ObjPainter.Paint(model, image, Color);
-
-            Image.Source = image.Source;
+            ObjPainter.Paint(model, Image, Color);
 
             NotifyPropertyChanged(nameof(Image));
         }
