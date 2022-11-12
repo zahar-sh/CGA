@@ -41,10 +41,10 @@ namespace CGA1.ViewModel
 
         public MainWindowViewModel()
         {
-            Image = new WritableImage(450, 450);
-            Fov = ToRadians(60);
+            Image = new WritableImage(1, 1);
+            Fov = 60;
             ObjPainter = new BresenhamPainter();
-            Color = Color.FromArgb(128, 0, 0, 255);
+            Color = Color.FromRgb(0, 0, 0);
             FileDialog = new OpenFileDialog
             {
                 Filter = "Object | *.obj",
@@ -53,6 +53,29 @@ namespace CGA1.ViewModel
             };
             LoadObjCommand = new DelegateCommand(o => LoadObj());
             RepaintCommand= new DelegateCommand(o => Repaint());
+        }
+
+        public int ImageWidth
+        {
+            get => Image.Width;
+            set
+            {
+                if (!Equals(ImageWidth, value))
+                {
+                    Image = new WritableImage(value, ImageWidth);
+                }
+            }
+        }
+        public int ImageHeight
+        {
+            get => Image.Height;
+            set
+            {
+                if (!Equals(ImageHeight, value))
+                {
+                    Image = new WritableImage(ImageWidth, value);
+                }
+            }
         }
 
         public float Fov { get => _fov; set => SetProperty(ref _fov, value, nameof(Fov)); }
@@ -140,7 +163,7 @@ namespace CGA1.ViewModel
 
         private static float ToRadians(float radians)
         {
-            return (float)(radians * Math.PI / 180);
+            return (float)(radians / 180 * Math.PI);
         }
     }
 }

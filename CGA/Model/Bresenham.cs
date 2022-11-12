@@ -73,48 +73,47 @@ namespace CGA1.Model
             DrawLine(v1, v2);
         }
 
-        private void DrawLine(Vector3 src, Vector3 desc)
+        private void DrawLine(Vector3 v1, Vector3 v2)
         {
-            var dx = Math.Abs(desc.X - src.X);
-            var dy = Math.Abs(desc.Y - src.Y);
-            var dz = Math.Abs(desc.Z - src.Z);
+            float dx = Math.Abs(v2.X - v1.X);
+            float dy = Math.Abs(v2.Y - v1.Y);
+            float dz = Math.Abs(v2.Z - v1.Z);
 
-            var signX = src.X < desc.X ? 1 : -1;
-            var signY = src.Y < desc.Y ? 1 : -1;
-            float signZ = src.Z < desc.Z ? 1 : -1;
+            int signX = v1.X < v2.X ? 1 : -1;
+            int signY = v1.Y < v2.Y ? 1 : -1;
+            int signZ = v1.Z < v2.Z ? 1 : -1;
 
-            var p = src;
+            int x = (int)v1.X;
+            int y = (int)v1.Y;
+            float z = v1.Z;
 
-            float curZ = src.Z;
             float deltaZ = dz / dy;
 
-            var err = dx - dy;
+            float err = dx - dy;
 
-            while (p.X != desc.X || p.Y != desc.Y)
+            while (x != (int)v2.X || y != (int)v2.Y)
             {
-                DrawPoint((int)p.X, (int)p.Y, curZ);
+                DrawPoint(x, y, z);
 
-                var err2 = err * 2;
+                float err2 = err * 2;
                 if (err2 > -dy)
                 {
-                    p.X += signX;
+                    x += signX;
                     err -= dy;
                 }
                 if (err2 < dx)
                 {
-                    p.Y += signY;
+                    y += signY;
                     err += dx;
-                    curZ += signZ * deltaZ;
+                    z += signZ * deltaZ;
                 }
             }
-            DrawPoint((int)desc.X, (int)desc.Y, desc.Z);
+            DrawPoint((int)v2.X, (int)v2.Y, v2.Z);
         }
 
         private void DrawPoint(int x, int y, float z)
         {
-            if (x > 0 && x < Image.Width &&
-                y > 0 && y < Image.Height &&
-                z > 0 && z < 1)
+            if (Image.IsValidIndexes(x, y) && z > 0 && z < 1)
             {
                 Image[x, y] = Color;
             }
