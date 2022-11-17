@@ -5,6 +5,7 @@ namespace CGA1.Command
 {
     public class DelegateCommand : ICommand
     {
+        private static readonly Action<object> DoNothing = o => { };
         private static readonly Predicate<object> AnyTrue = o => true;
 
         private readonly Action<object> _execute;
@@ -12,7 +13,7 @@ namespace CGA1.Command
 
         public DelegateCommand(Action<object> execute, Predicate<object> canExecute = null)
         {
-            _execute = execute;
+            _execute = execute ?? DoNothing;
             _canExecute = canExecute ?? AnyTrue;
         }
 
@@ -24,6 +25,6 @@ namespace CGA1.Command
 
         public bool CanExecute(object parameter) => _canExecute(parameter);
 
-        public void Execute(object parameter) => _execute?.Invoke(parameter);
+        public void Execute(object parameter) => _execute(parameter);
     }
 }
