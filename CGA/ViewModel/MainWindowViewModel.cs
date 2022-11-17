@@ -45,7 +45,7 @@ namespace CGA1.ViewModel
             _image = new WritableImage(420, 560);
             Fov = 60;
             ObjPainter = new BresenhamPainter();
-            Color = Color.FromRgb(0, 0, 0);
+            Color = Color.FromRgb(125, 125, 125);
             FileDialog = new OpenFileDialog
             {
                 Filter = "Object | *.obj",

@@ -6,22 +6,27 @@ namespace CGA1.Model
 {
     public class WritableImage
     {
+        private readonly int _width;
+        private readonly int _height;
+        private readonly long _backBuffer;
+        private readonly int _backBufferStride;
+        private readonly int _bytesPerPixel;
+
         public WritableImage(int width, int height)
         {
             Source = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            _width = width;
+            _height = height;
+            _backBuffer = Source.BackBuffer.ToInt64();
+            _backBufferStride = Source.BackBufferStride;
+            _bytesPerPixel = Source.Format.BitsPerPixel / 8;
         }
 
         public WriteableBitmap Source { get; }
 
-        public int Width => Source.PixelWidth;
+        public int Width => _width;
 
-        public int Height => Source.PixelHeight;
-
-        private long BackBuffer => Source.BackBuffer.ToInt64();
-
-        private int BackBufferStride => Source.BackBufferStride;
-
-        private int BytesPerPixel => Source.Format.BitsPerPixel / 8;
+        public int Height => _height;
 
         public bool IsValidIndexes(int x, int y)
         {
@@ -34,7 +39,7 @@ namespace CGA1.Model
             {
                 throw new IndexOutOfRangeException();
             }
-            return (byte*)(BackBuffer + (y * BackBufferStride) + (x * BytesPerPixel));
+            return (byte*)(_backBuffer + (y * _backBufferStride) + (x * _bytesPerPixel));
         }
 
         public unsafe Color this[int x, int y]
