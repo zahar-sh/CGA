@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace CGA1.Model
@@ -17,7 +19,7 @@ namespace CGA1.Model
         {
             Obj = obj;
             Image = image;
-            Color=color;
+            Color = color;
         }
 
         private static Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
@@ -47,13 +49,7 @@ namespace CGA1.Model
 
         public void DrawModel()
         {
-            foreach (var face in Obj.Faces)
-            {
-                if (IsFaceVisible(face))
-                {
-                    DrawFace(face);
-                }
-            }
+            _ = Parallel.ForEach(Obj.Faces.Where(IsFaceVisible), DrawFace);
         }
 
         private void DrawFace(IList<Vector3> face)
@@ -75,8 +71,8 @@ namespace CGA1.Model
 
         private void DrawLine(Vector3 v1, Vector3 v2)
         {
-            float dx = Math.Abs(v2.X - v1.X);
-            float dy = Math.Abs(v2.Y - v1.Y);
+            int dx = (int)Math.Abs(v2.X - v1.X);
+            int dy = (int)Math.Abs(v2.Y - v1.Y);
             float dz = Math.Abs(v2.Z - v1.Z);
 
             int signX = v1.X < v2.X ? 1 : -1;
@@ -89,22 +85,22 @@ namespace CGA1.Model
 
             float deltaZ = dz / dy;
 
-            float err = dx - dy;
+            int err = dx - dy;
 
             while (x != (int)v2.X || y != (int)v2.Y)
             {
                 DrawPoint(x, y, z);
 
-                float err2 = err * 2;
+                int err2 = err * 2;
                 if (err2 > -dy)
                 {
-                    x += signX;
                     err -= dy;
+                    x += signX;
                 }
                 if (err2 < dx)
                 {
-                    y += signY;
                     err += dx;
+                    y += signY;
                     z += signZ * deltaZ;
                 }
             }

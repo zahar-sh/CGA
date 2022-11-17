@@ -6,6 +6,7 @@ using System.Windows.Media;
 using Microsoft.Win32;
 using System.IO;
 using System;
+using System.Windows.Media.Imaging;
 
 namespace CGA1.ViewModel
 {
@@ -41,7 +42,7 @@ namespace CGA1.ViewModel
 
         public MainWindowViewModel()
         {
-            Image = new WritableImage(1, 1);
+            _image = new WritableImage(420, 560);
             Fov = 60;
             ObjPainter = new BresenhamPainter();
             Color = Color.FromRgb(0, 0, 0);
@@ -55,25 +56,32 @@ namespace CGA1.ViewModel
             RepaintCommand= new DelegateCommand(o => Repaint());
         }
 
+        public WriteableBitmap ImageSource => _image.Source;
         public int ImageWidth
         {
-            get => Image.Width;
+            get => _image.Width;
+
             set
             {
                 if (!Equals(ImageWidth, value))
                 {
-                    Image = new WritableImage(value, ImageWidth);
+                    _image = new WritableImage(value, ImageHeight);
+                    NotifyPropertyChanged(nameof(ImageWidth));
+                    NotifyPropertyChanged(nameof(ImageSource));
                 }
             }
         }
         public int ImageHeight
         {
-            get => Image.Height;
+            get => _image.Height;
+
             set
             {
                 if (!Equals(ImageHeight, value))
                 {
-                    Image = new WritableImage(ImageWidth, value);
+                    _image = new WritableImage(ImageWidth, value);
+                    NotifyPropertyChanged(nameof(ImageHeight));
+                    NotifyPropertyChanged(nameof(ImageSource));
                 }
             }
         }
@@ -101,8 +109,6 @@ namespace CGA1.ViewModel
         public IObjPainter ObjPainter { get => _objPainter; set => SetProperty(ref _objPainter, value, nameof(ObjPainter)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
-
-        public WritableImage Image { get => _image; set => SetProperty(ref _image, value, nameof(Image)); }
 
         public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
 
@@ -145,10 +151,10 @@ namespace CGA1.ViewModel
 
         private void Repaint()
         {
-            if (ObjPainter is null || Obj is null || Image is null)
+            if (ObjPainter is null || Obj is null)
                 return;
-            var width = Image.Width;
-            var height = Image.Height;
+            var width = ImageWidth;
+            var height = ImageHeight;
             var viewportMatrix = Matrices.CreateViewportMatrix(0, 0, width, height);
             var projectionMatrix = Matrices.CreateProjectionByAspect((float)width / height, ToRadians(Fov), 0.1f, 100.0f);
             var viewMatrix = Matrices.CreateViewMatrix(CameraPosX, CameraPosY, CameraPosZ, ToRadians(CameraYaw), ToRadians(CameraPitch), ToRadians(CameraRoll));
@@ -156,9 +162,9 @@ namespace CGA1.ViewModel
 
             var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
 
-            ObjPainter.Paint(model, Image, Color);
+            ObjPainter.Paint(model, _image, Color);
 
-            NotifyPropertyChanged(nameof(Image));
+            NotifyPropertyChanged(nameof(ImageSource));
         }
 
         private static float ToRadians(float radians)
