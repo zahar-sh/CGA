@@ -17,8 +17,8 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid  Margin="5"
-               Grid.Column="0">
+        <Grid Margin="5"
+              Grid.Column="0">
             <Image Source="{Binding Bitmap}" 
                 Width="{Binding Width}"
                 Height="{Binding Height}"/>
@@ -26,8 +26,8 @@
         <Grid Margin="5"
               Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -51,9 +51,9 @@
                        Grid.Column="0" 
                        Grid.Row="0"/>
             <Slider Value="{Binding ModelPosX, Mode=TwoWay}"
-                        Minimum="-128"
-                        Maximum="128" 
-                        SmallChange="8" 
+                        Minimum="-32"
+                        Maximum="32" 
+                        SmallChange="4" 
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1"
                         Grid.Row="0"/>
@@ -62,9 +62,9 @@
                        Grid.Column="0"
                        Grid.Row="1"/>
             <Slider Value="{Binding ModelPosY, Mode=TwoWay}"
-                        Minimum="-128"
-                        Maximum="128" 
-                        SmallChange="8"
+                        Minimum="-32"
+                        Maximum="32" 
+                        SmallChange="4"
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1" 
                         Grid.Row="1"/>
@@ -73,9 +73,9 @@
                        Grid.Column="0"
                        Grid.Row="2"/>
             <Slider Value="{Binding ModelPosZ, Mode=TwoWay}"
-                        Minimum="-128"
-                        Maximum="128" 
-                        SmallChange="8"
+                        Minimum="-32"
+                        Maximum="32" 
+                        SmallChange="4"
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1"
                         Grid.Row="2"/>
@@ -89,8 +89,7 @@
                         SmallChange="15" 
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1"
-                        Grid.Row="3" 
-                        Grid.RowSpan="1"/>
+                        Grid.Row="3"/>
 
             <Label Content="Model Pitch"
                        Grid.Column="0" 
@@ -129,9 +128,9 @@
                        Grid.Column="0" 
                        Grid.Row="7"/>
             <Slider Value="{Binding CameraPosX, Mode=TwoWay}" 
-                       Minimum="-128"
-                        Maximum="128" 
-                        SmallChange="8"
+                       Minimum="-32"
+                        Maximum="32" 
+                        SmallChange="4"
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1"
                         Grid.Row="7"/>
@@ -140,9 +139,9 @@
                        Grid.Column="0"
                        Grid.Row="8"/>
             <Slider Value="{Binding CameraPosY, Mode=TwoWay}" 
-                        Minimum="-128"
-                        Maximum="128" 
-                        SmallChange="8"
+                        Minimum="-32"
+                        Maximum="32" 
+                        SmallChange="4"
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1" 
                         Grid.Row="8"/>
@@ -151,9 +150,9 @@
                        Grid.Column="0"
                        Grid.Row="9"/>
             <Slider Value="{Binding CameraPosZ, Mode=TwoWay}" 
-                        Minimum="-128"
-                        Maximum="128" 
-                        SmallChange="8"
+                        Minimum="-32"
+                        Maximum="32" 
+                        SmallChange="4"
                         AutoToolTipPlacement="TopLeft" 
                         Grid.Column="1" 
                         Grid.Row="9"/>

@@ -52,7 +52,7 @@ namespace CGA1.Model
             }
         }
 
-        public IEnumerable<(int x, int y)> GetIndexes(int startX, int startY, int endX, int endY)
+        public IEnumerable<(int x, int y)> GetPoints(int startX, int startY, int endX, int endY)
         {
             CheckX(startX, nameof(startX));
             CheckY(startY, nameof(startY));
@@ -67,7 +67,7 @@ namespace CGA1.Model
             }
         }
 
-        public IEnumerable<(int x, int y)> GetIndexes()
+        public IEnumerable<(int x, int y)> GetPoints()
         {
             for (int y = 0; y < Height; y++)
             {
@@ -80,22 +80,22 @@ namespace CGA1.Model
 
         public IEnumerable<T> GetElements(int startX, int startY, int endX, int endY)
         {
-            return GetElements(GetIndexes(startX, startY, endX, endY));
+            return GetElements(GetPoints(startX, startY, endX, endY));
         }
 
         public IEnumerable<T> GetElements()
         {
-            return GetElements(GetIndexes());
+            return GetElements(GetPoints());
         }
 
         public void SetElements(int startX, int startY, int endX, int endY, Func<int, int, T> selector)
         {
-            SetElements(GetIndexes(startX, startY, endX, endY), selector);
+            SetElements(GetPoints(startX, startY, endX, endY), selector);
         }
 
         public void SetElements(Func<int, int, T> selector)
         {
-            SetElements(GetIndexes(), selector);
+            SetElements(GetPoints(), selector);
         }
 
         private IEnumerable<T> GetElements(IEnumerable<(int x, int y)> points)

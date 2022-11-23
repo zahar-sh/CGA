@@ -7,20 +7,22 @@ namespace CGA1.Model
     {
         public static Matrix4x4 CreateTranslation(float x, float y, float z)
         {
-            return new Matrix4x4(
+            /*return new Matrix4x4(
                 1, 0, 0, x,
                 0, 1, 0, y,
                 0, 0, 1, z,
-                0, 0, 0, 1);
+                0, 0, 0, 1);*/
+            return Matrix4x4.CreateTranslation(x, y, z);
         }
 
         public static Matrix4x4 CreateScale(float scale)
         {
-            return new Matrix4x4(
+            /*return new Matrix4x4(
                 scale, 0, 0, 0,
                 0, scale, 0, 0,
                 0, 0, scale, 0,
-                0, 0, 0, 1);
+                0, 0, 0, 1);*/
+            return Matrix4x4.CreateScale(scale);
         }
 
         public static Matrix4x4 CreateRotationX(float angle)
@@ -58,16 +60,17 @@ namespace CGA1.Model
 
         public static Matrix4x4 CreateRotation(float angleX, float angleY, float angleZ)
         {
-            return CreateRotationX(angleX) *
+            /*return CreateRotationX(angleX) *
                 CreateRotationY(angleY) *
-                CreateRotationZ(angleZ);
+                CreateRotationZ(angleZ);*/
+            return Matrix4x4.CreateFromYawPitchRoll(angleX, angleY, angleZ);
         }
 
         public static Matrix4x4 CreateModelMatrix(float x, float y, float z, float angleX, float angleY, float angleZ, float scale)
         {
-            return CreateTranslation(x, y, z) *
+            return CreateScale(scale) *
                 CreateRotation(angleX, angleY, angleZ) *
-                CreateScale(scale);
+                 CreateTranslation(x, y, z);
         }
 
         public static Matrix4x4 CreateViewMatrix(float x, float y, float z, float angleX, float angleY, float angleZ)
@@ -89,9 +92,9 @@ namespace CGA1.Model
                 0, 0, -1, 0);
         }
 
-        public static Matrix4x4 CreateProjectionByAspect(float aspect, float fov, float near, float far)
+        public static Matrix4x4 CreateProjectionByAspect(float fov, float aspect, float near, float far)
         {
-            var v2 = (float)(1 / Math.Tan(fov / 2));
+            /*var v2 = (float)(1 / Math.Tan(fov / 2));
             var v1 = (float)((1 / aspect) * v2);
             var v3 = far / (near - far);
             var v4 = near * far / (near - far);
@@ -99,7 +102,8 @@ namespace CGA1.Model
                 v1, 0, 0, 0,
                 0, v2, 0, 0,
                 0, 0, v3, v4,
-                0, 0, -1, 0);
+                0, 0, -1, 0);*/
+            return Matrix4x4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
         }
 
         public static Matrix4x4 CreateViewportMatrix(float minX, float minY, float width, float height)
@@ -107,10 +111,10 @@ namespace CGA1.Model
             var v1 = width / 2;
             var v2 = height / 2;
             return new Matrix4x4(
-                v1, 0, 0, minX + v1,
-                0, -v2, 0, minY + v2,
+                v1, 0, 0, 0,
+                0, -v2, 0, 0,
                 0, 0, 1, 0,
-                0, 0, 0, 1);
+                minX + v1, minY + v2, 0, 1);
         }
     }
 }

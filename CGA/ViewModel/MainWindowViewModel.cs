@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using System.IO;
 using System;
 using System.Windows.Media.Imaging;
+using System.Linq;
 
 namespace CGA1.ViewModel
 {
@@ -50,7 +51,6 @@ namespace CGA1.ViewModel
             Height = 550;
             ColorBuffer = new ColorBuffer(Width, Height);
             Bitmap = CreateBitmap(Width, Height);
-            ColorBuffer.Write(Bitmap);
             Fov = 60;
             ModelScale = 0.5f;
             CameraPosZ = 10;
@@ -171,27 +171,27 @@ namespace CGA1.ViewModel
 
         private void Repaint()
         {
-            if (ObjPainter is null || Obj is null || ColorBuffer is null || Bitmap is null)
+            if (Obj is null)
                 return;
 
             var viewportMatrix = Matrices.CreateViewportMatrix(0, 0, Width, Height);
-            var projectionMatrix = Matrices.CreateProjectionByAspect((float)Width / Height, ToRadians(Fov), 0.1f, 100.0f);
+            var projectionMatrix = Matrices.CreateProjectionByAspect(ToRadians(Fov), (float)Width / Height, 0.1f, 100.0f);
             var viewMatrix = Matrices.CreateViewMatrix(CameraPosX, CameraPosY, CameraPosZ,
                 ToRadians(CameraYaw), ToRadians(CameraPitch), ToRadians(CameraRoll));
-            var modelMatrix = Matrices.CreateModelMatrix(ModelPosX, ModelPosY, ModelPosZ, 
+            var modelMatrix = Matrices.CreateModelMatrix(ModelPosX, ModelPosY, ModelPosZ,
                 ToRadians(ModelYaw), ToRadians(ModelPitch), ToRadians(ModelRoll), ModelScale);
 
             var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
-
             ColorBuffer.Fill(Colors.White);
+            Console.WriteLine(model.ToString());
             ObjPainter.Paint(model, ColorBuffer, Color);
 
             NotifyPropertyChanged(nameof(ColorBuffer));
         }
 
-        private static float ToRadians(float radians)
+        private static float ToRadians(float angle)
         {
-            return (float)(radians / 180 * Math.PI);
+            return (float)(angle / 180 * Math.PI);
         }
 
         private static WriteableBitmap CreateBitmap(int width, int height)
