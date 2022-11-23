@@ -75,10 +75,11 @@
     <Compile Include="Model\BresenhamPainter.cs" />
     <Compile Include="Model\IObjPainter.cs" />
     <Compile Include="Model\Matrices.cs" />
+    <Compile Include="Model\Matrix.cs" />
     <Compile Include="Model\Obj.cs" />
     <Compile Include="Model\ObjParser.cs" />
     <Compile Include="Model\VectorExtensions.cs" />
-    <Compile Include="Model\WritableImage.cs" />
+    <Compile Include="Model\ColorBuffer.cs" />
     <Compile Include="Model\ZBuffer.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="View\MainWindow.xaml.cs">

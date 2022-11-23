@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using CGA1.ViewModel;
+using System.Windows;
 
 namespace CGA1
 {

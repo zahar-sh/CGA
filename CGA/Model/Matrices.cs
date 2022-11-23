@@ -65,9 +65,9 @@ namespace CGA1.Model
 
         public static Matrix4x4 CreateModelMatrix(float x, float y, float z, float angleX, float angleY, float angleZ, float scale)
         {
-            return CreateScale(scale)  *
+            return CreateTranslation(x, y, z) *
                 CreateRotation(angleX, angleY, angleZ) *
-                CreateTranslation(x, y, z);
+                CreateScale(scale);
         }
 
         public static Matrix4x4 CreateViewMatrix(float x, float y, float z, float angleX, float angleY, float angleZ)

@@ -4,6 +4,6 @@ namespace CGA1.Model
 {
     public interface IObjPainter
     {
-        void Paint(Obj obj, WritableImage image, Color color);
+        void Paint(Obj obj, ColorBuffer image, Color color);
     }
 }

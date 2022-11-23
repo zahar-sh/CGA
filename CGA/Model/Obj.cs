@@ -16,29 +16,16 @@ namespace CGA1.Model
 
         public Obj Transform(Matrix4x4 viewportMatrix, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix, Matrix4x4 modelMatrix)
         {
-            var matrix = modelMatrix * viewMatrix * projectionMatrix;
+            var matrix = viewportMatrix * projectionMatrix * viewMatrix * modelMatrix;
             var vertices = Vertices
-                .Select(v =>
-                {
-                    var result = Vector4.Transform(Vector4.Transform(v, matrix) / v.W, viewportMatrix);
-                    result.W = v.W;
-                    return result;
-                })
+                .Select(v => Vector4.Transform(v, matrix) / v.W)
                 .ToList();
-            var textures = Textures.Select(v => v).ToList();
-            var normals = Normals
-                .Select(v =>
-                {
-                    return Vector3.Normalize(Vector3.TransformNormal(v, modelMatrix));
-                })
-                .ToList();
-            var faces = Faces.Select(v => v).ToList();
             return new Obj()
             {
                 Vertices = vertices,
-                Textures = textures,
-                Normals = normals,
-                Faces = faces
+                Textures = Textures,
+                Normals = Normals,
+                Faces = Faces
             };
         }
     }

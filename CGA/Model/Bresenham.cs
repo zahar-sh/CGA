@@ -11,14 +11,14 @@ namespace CGA1.Model
     {
         public Obj Obj { get; }
 
-        public WritableImage Image { get; }
+        public ColorBuffer Buffer { get; }
 
         public Color Color { get; }
 
-        public Bresenham(Obj obj, WritableImage image, Color color)
+        public Bresenham(Obj obj, ColorBuffer buffer, Color color)
         {
             Obj = obj;
-            Image = image;
+            Buffer = buffer;
             Color = color;
         }
 
@@ -109,9 +109,11 @@ namespace CGA1.Model
 
         private void DrawPoint(int x, int y, float z)
         {
-            if (Image.IsValidIndexes(x, y) && z > 0 && z < 1)
+            if (x >= 0 && x < Buffer.Width &&
+                y >= 0 && y < Buffer.Height &&
+                z > 0 && z < 1)
             {
-                Image[x, y] = Color;
+                Buffer[x, y] = Color;
             }
         }
     }
