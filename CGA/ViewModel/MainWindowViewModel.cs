@@ -9,6 +9,8 @@ using System;
 using System.Windows.Media.Imaging;
 using System.Linq;
 using System.Numerics;
+using System.Windows;
+using CGA1.Model;
 
 namespace CGA.ViewModel
 {
@@ -41,8 +43,8 @@ namespace CGA.ViewModel
         private float _cameraRoll;
 
         private Obj _obj;
-
         private Color _color;
+        private PainterType _painterType;
 
         public MainWindowViewModel()
         {
@@ -53,7 +55,8 @@ namespace CGA.ViewModel
             Fov = 60;
             ModelScale = 0.5f;
             CameraPosZ = 10;
-            Color = Colors.Black;
+            Color = Color.FromRgb(128, 128, 128);
+            PainterType = PainterType.Bresenham;
             FileDialog = new OpenFileDialog
             {
                 Filter = "Object | *.obj",
@@ -91,8 +94,8 @@ namespace CGA.ViewModel
         public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value, nameof(CameraRoll)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
-
         public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
+        public PainterType PainterType { get => _painterType; set => SetProperty(ref _painterType, value, nameof(PainterType)); }
 
         public ICommand LoadObjCommand { get; }
 
@@ -146,6 +149,7 @@ namespace CGA.ViewModel
                 case nameof(CameraRoll):
                 case nameof(Obj):
                 case nameof(Color):
+                case nameof(PainterType):
                     Repaint();
                     break;
             }
@@ -159,7 +163,14 @@ namespace CGA.ViewModel
                 var fileName = FileDialog.FileName;
                 using (var reader = new StreamReader(new FileStream(fileName, FileMode.Open)))
                 {
-                    Obj = ObjParser.Parse(reader);
+                    try
+                    {
+                        Obj = ObjParser.Parse(reader);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
                 }
             }
         }
@@ -180,10 +191,18 @@ namespace CGA.ViewModel
 
             ColorBuffer.Fill(Colors.White);
 
-            var lightning = new LambertLighting(new Vector3(0, 0, 1));
-            var painter = new FlatShading(model, ColorBuffer, Color, lightning);
-            painter.DrawModel();
-
+            switch (PainterType)
+            {
+                case PainterType.Bresenham:
+                    var bresenham = new Bresenham(model, ColorBuffer, Color);
+                    bresenham.DrawModel();
+                    break;
+                case PainterType.FlatShading:
+                    var lightning = new LambertLighting(new Vector3(0, 0, 1));
+                    var flatShading = new FlatShading(model, ColorBuffer, Color, lightning);
+                    flatShading.DrawModel();
+                    break;
+            }
             NotifyPropertyChanged(nameof(ColorBuffer));
         }
 

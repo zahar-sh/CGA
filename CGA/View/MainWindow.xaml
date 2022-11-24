@@ -45,155 +45,175 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-
+            
+            <Button Content="Load obj"
+                    Command="{Binding LoadObjCommand}"
+                    Grid.Column="0" 
+                    Grid.ColumnSpan="2"
+                    Grid.Row="0"
+                    Margin="5"/>
+            
             <Label Content="Model X"
-                       Grid.Column="0" 
-                       Grid.Row="0"/>
+                   Grid.Column="0" 
+                   Grid.Row="1"/>
             <Slider Value="{Binding ModelPosX, Mode=TwoWay}"
-                        Minimum="-32"
-                        Maximum="32" 
-                        SmallChange="4" 
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1"
-                        Grid.Row="0"/>
+                    Minimum="-32"
+                    Maximum="32" 
+                    SmallChange="4" 
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1"
+                    Grid.Row="1"/>
 
             <Label Content="Model Y"
-                       Grid.Column="0"
-                       Grid.Row="1"/>
+                   Grid.Column="0"
+                   Grid.Row="2"/>
             <Slider Value="{Binding ModelPosY, Mode=TwoWay}"
-                        Minimum="-32"
-                        Maximum="32" 
-                        SmallChange="4"
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1" 
-                        Grid.Row="1"/>
+                    Minimum="-32"
+                    Maximum="32" 
+                    SmallChange="4"
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1" 
+                    Grid.Row="2"/>
 
             <Label Content="Model Z"
-                       Grid.Column="0"
-                       Grid.Row="2"/>
+                   Grid.Column="0"
+                   Grid.Row="3"/>
             <Slider Value="{Binding ModelPosZ, Mode=TwoWay}"
-                        Minimum="-32"
-                        Maximum="32" 
-                        SmallChange="4"
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1"
-                        Grid.Row="2"/>
+                    Minimum="-32"
+                    Maximum="32" 
+                    SmallChange="4"
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1"
+                    Grid.Row="3"/>
 
             <Label Content="Model Yaw"
-                       Grid.Column="0"
-                       Grid.Row="3"/>
+                   Grid.Column="0"
+                   Grid.Row="4"/>
             <Slider Value="{Binding ModelYaw, Mode=TwoWay}" 
-                        Minimum="-180" 
-                        Maximum="180" 
-                        SmallChange="15" 
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1"
-                        Grid.Row="3"/>
+                    Minimum="-180" 
+                    Maximum="180" 
+                    SmallChange="15" 
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1"
+                    Grid.Row="4"/>
 
             <Label Content="Model Pitch"
-                       Grid.Column="0" 
-                       Grid.Row="4"/>
+                   Grid.Column="0" 
+                   Grid.Row="5"/>
             <Slider Value="{Binding ModelPitch, Mode=TwoWay}"
-                        Minimum="-180" 
-                        Maximum="180" 
-                        SmallChange="15"
-                        AutoToolTipPlacement="TopLeft"
-                        Grid.Column="1"
-                        Grid.Row="4"/>
+                    Minimum="-180" 
+                    Maximum="180" 
+                    SmallChange="15"
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1"
+                    Grid.Row="5"/>
 
             <Label Content="Model Roll"
-                       Grid.Column="0" 
-                       Grid.Row="5"/>
+                   Grid.Column="0" 
+                   Grid.Row="6"/>
             <Slider Value="{Binding ModelRoll, Mode=TwoWay}" 
-                        Minimum="-180" 
-                        Maximum="180"
-                        SmallChange="15" 
-                        AutoToolTipPlacement="TopLeft"
-                        Grid.Column="1"
-                        Grid.Row="5"/>
+                    Minimum="-180" 
+                    Maximum="180"
+                    SmallChange="15" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1"
+                    Grid.Row="6"/>
 
             <Label Content="Model Scale" 
-                       Grid.Column="0" 
-                       Grid.Row="6"/>
+                   Grid.Column="0" 
+                   Grid.Row="7"/>
             <Slider Value="{Binding ModelScale, Mode=TwoWay}" 
-                        Minimum="0.1" 
-                        Maximum="3" 
-                        SmallChange="0.1" 
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1"
-                        Grid.Row="6"/>
+                    Minimum="0.1" 
+                    Maximum="3" 
+                    SmallChange="0.1" 
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1"
+                    Grid.Row="7"/>
 
             <Label Content="Camera X" 
-                       Grid.Column="0" 
-                       Grid.Row="7"/>
+                   Grid.Column="0" 
+                   Grid.Row="8"/>
             <Slider Value="{Binding CameraPosX, Mode=TwoWay}" 
-                       Minimum="-32"
-                        Maximum="32" 
-                        SmallChange="4"
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1"
-                        Grid.Row="7"/>
+                    Minimum="-32"
+                    Maximum="32" 
+                    SmallChange="4"
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1"
+                    Grid.Row="8"/>
 
             <Label Content="Camera Y"  
-                       Grid.Column="0"
-                       Grid.Row="8"/>
+                   Grid.Column="0"
+                   Grid.Row="9"/>
             <Slider Value="{Binding CameraPosY, Mode=TwoWay}" 
-                        Minimum="-32"
-                        Maximum="32" 
-                        SmallChange="4"
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1" 
-                        Grid.Row="8"/>
+                    Minimum="-32"
+                    Maximum="32" 
+                    SmallChange="4"
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1" 
+                    Grid.Row="9"/>
 
             <Label Content="Camera Z" 
-                       Grid.Column="0"
-                       Grid.Row="9"/>
+                   Grid.Column="0"
+                   Grid.Row="10"/>
             <Slider Value="{Binding CameraPosZ, Mode=TwoWay}" 
-                        Minimum="-32"
-                        Maximum="32" 
-                        SmallChange="4"
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1" 
-                        Grid.Row="9"/>
+                    Minimum="-32"
+                    Maximum="32" 
+                    SmallChange="4"
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1" 
+                    Grid.Row="10"/>
 
             <Label Content="Camera Yaw"
-                       Grid.Column="0"
-                       Grid.Row="10"/>
+                   Grid.Column="0"
+                   Grid.Row="11"/>
             <Slider Value="{Binding CameraYaw, Mode=TwoWay}" 
-                        Minimum="-180" 
-                        Maximum="180" 
-                        SmallChange="15" 
-                        AutoToolTipPlacement="TopLeft"
-                        Grid.Column="1"
-                        Grid.Row="10"/>
+                    Minimum="-180" 
+                    Maximum="180" 
+                    SmallChange="15" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1"
+                    Grid.Row="11"/>
 
             <Label Content="Camera Pitch"
-                       Grid.Column="0"
-                       Grid.Row="11"/>
+                   Grid.Column="0"
+                   Grid.Row="12"/>
             <Slider Value="{Binding CameraPitch, Mode=TwoWay}"
-                        Minimum="-180" 
-                        Maximum="180" 
-                        SmallChange="15" 
-                        AutoToolTipPlacement="TopLeft" 
-                        Grid.Column="1"
-                        Grid.Row="11"/>
+                    Minimum="-180" 
+                    Maximum="180" 
+                    SmallChange="15" 
+                    AutoToolTipPlacement="TopLeft" 
+                    Grid.Column="1"
+                    Grid.Row="12"/>
 
             <Label Content="Camera Roll"
-                       Grid.Column="0"
-                       Grid.Row="12"/>
+                   Grid.Column="0"
+                   Grid.Row="13"/>
             <Slider Value="{Binding CameraRoll, Mode=TwoWay}" 
-                        Minimum="-180" 
-                        Maximum="180" 
-                        SmallChange="15" 
-                        AutoToolTipPlacement="TopLeft"
-                        Grid.Column="1" 
-                        Grid.Row="12"/>
-            <Button Content="Load obj"
-                        Command="{Binding LoadObjCommand}"
-                        Grid.Column="0" 
-                        Grid.ColumnSpan="2"
-                        Grid.Row="13"/>
+                    Minimum="-180" 
+                    Maximum="180" 
+                    SmallChange="15" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1" 
+                    Grid.Row="13"/>
+
+            <Label Content="Render Type"
+                   Grid.Column="0"
+                   Grid.Row="14"/>
+            <StackPanel Grid.Column="1"
+                        Grid.Row="14"
+                        Grid.ColumnSpan="2">
+                <RadioButton x:Name="bresenhamRadoiButton" 
+                             Content="Bresenham"
+                             IsChecked="True"
+                             Checked="Bresenham_Checked"
+                             Margin="3"/>
+                <RadioButton x:Name="flatShadingRadoiButton"
+                             Content="FlatShading"
+                             Checked="Bresenham_Checked"
+                             Margin="3"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>

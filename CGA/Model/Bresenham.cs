@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace CGA.Model
 {
-    public class Bresenham : IObjPainter
+    public class Bresenham
     {
         public Bresenham(Obj obj, ColorBuffer buffer, Color color)
         {
@@ -21,18 +22,18 @@ namespace CGA.Model
 
         public Color Color { get; }
 
-        protected static Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
+        private Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             return Vector3.Normalize(Vector3.Cross(v2 - v1, v3 - v1));
         }
 
-        protected Vector4 GetFacePoint(IList<Vector3> face, int i)
+        private Vector4 GetFacePoint(IList<Vector3> face, int i)
         {
             int index = Convert.ToInt32(face[i].X);
             return Obj.Vertices[index];
         }
 
-        protected Vector3 GetFaceNormal(IList<Vector3> face)
+        private Vector3 GetFaceNormal(IList<Vector3> face)
         {
             var v1 = GetFacePoint(face, 0).ToVector3();
             var v2 = GetFacePoint(face, 1).ToVector3();
@@ -40,7 +41,7 @@ namespace CGA.Model
             return GetNormal(v1, v2, v3);
         }
 
-        protected bool IsFaceVisible(IList<Vector3> face)
+        public bool IsFaceVisible(IList<Vector3> face)
         {
             var normal = GetFaceNormal(face);
             return normal.Z < 0;
@@ -48,26 +49,27 @@ namespace CGA.Model
 
         public virtual void DrawModel()
         {
-            _ = Parallel.ForEach(Obj.Faces, face =>
+            var points = Obj.Faces
+                .Where(IsFaceVisible)
+                .SelectMany(GetFacePoints)
+                .Where(point => IsValidPoint(point.X, point.Y, point.Z));
+            _ = Parallel.ForEach(points, point =>
             {
-                if (IsFaceVisible(face))
-                {
-                    DrawFace(face, Color);
-                }
+                DrawPoint(point.X, point.Y, Color);
             });
         }
 
-        protected void DrawFace(IList<Vector3> face, Color color)
+        public IEnumerable<(int X, int Y, float Z)> GetFacePoints(IList<Vector3> face)
         {
             var lastFaceIndex = face.Count - 1;
-            for (int i = 0; i < lastFaceIndex; i++)
-            {
-                DrawSide(face, i, i + 1, color);
-            }
-            DrawSide(face, 0, lastFaceIndex, color);
+            return Enumerable
+                .Range(0, lastFaceIndex)
+                .Select(i => GetSidePoints(face, i, i + 1))
+                .Append(GetSidePoints(face, 0, lastFaceIndex))
+                .SelectMany(points => points);
         }
 
-        protected void DrawSide(IList<Vector3> face, int index1, int index2, Color color)
+        private IEnumerable<(int X, int Y, float Z)> GetSidePoints(IList<Vector3> face, int index1, int index2)
         {
             var v1 = GetFacePoint(face, index1);
             var v2 = GetFacePoint(face, index2);
@@ -79,10 +81,10 @@ namespace CGA.Model
             var x2 = Convert.ToInt32(v2.X);
             var y2 = Convert.ToInt32(v2.Y);
             var z2 = v2.Z;
-            DrawLine(x1, y1, z1, x2, y2, z2, color);
+            return GetLinePoints(x1, y1, z1, x2, y2, z2);
         }
 
-        protected void DrawLine(int x1, int y1, float z1, int x2, int y2, float z2, Color color)
+        public IEnumerable<(int X, int Y, float Z)> GetLinePoints(int x1, int y1, float z1, int x2, int y2, float z2)
         {
             int dx = Math.Abs(x2 - x1);
             int dy = Math.Abs(y2 - y1);
@@ -102,7 +104,7 @@ namespace CGA.Model
 
             while (x != x2 || y != y2)
             {
-                DrawPoint(x, y, z, color);
+                yield return (x, y, z);
 
                 int err2 = err * 2;
                 if (err2 > -dy)
@@ -117,17 +119,19 @@ namespace CGA.Model
                     z += signZ * deltaZ;
                 }
             }
-            DrawPoint(x2, y2, z2, color);
+            yield return (x, y, z);
         }
 
-        protected virtual void DrawPoint(int x, int y, float z, Color color)
+        public bool IsValidPoint(int x, int y, float z)
         {
-            if (x >= 0 && x < Buffer.Width &&
+            return x >= 0 && x < Buffer.Width &&
                 y >= 0 && y < Buffer.Height &&
-                z > 0 && z < 1)
-            {
-                Buffer[x, y] = color;
-            }
+                z > 0 && z < 1;
+        }
+
+        public void DrawPoint(int X, int Y, Color color)
+        {
+            Buffer[X, Y] = color;
         }
     }
 }

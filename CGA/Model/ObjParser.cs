@@ -9,6 +9,9 @@ namespace CGA.Model
 {
     public static class ObjParser
     {
+        private static readonly char[] WhiteSpaceSeparator = new char[] { ' ' };
+        private static readonly char[] FaceSeparator = new char[] { ' ', '/' };
+
         public static Obj Parse(TextReader reader)
         {
             var vertices = new List<Vector4>();
@@ -19,31 +22,38 @@ namespace CGA.Model
             string line;
             while ((line = reader.ReadLine()) != null)
             {
-                var strings = line.Split(' ');
+                var strings = Split(line, WhiteSpaceSeparator);
                 if (strings.Length == 0)
                     continue;
                 var type = strings[0];
                 var args = strings.Skip(1);
-                switch (type)
+                try
                 {
-                    case "v":
-                        var vertex = ParseVertex(args);
-                        vertices.Add(vertex);
-                        break;
-                    case "vt":
-                        var texture = ParseTexture(args);
-                        textures.Add(texture);
-                        break;
-                    case "vn":
-                        var normal = ParseNormal(args);
-                        normals.Add(normal);
-                        break;
-                    case "f":
-                        var face = args
-                            .Select(f => ParseFace(f.Split('/')) - Vector3.One)
-                            .ToList();
-                        faces.Add(face);
-                        break;
+                    switch (type)
+                    {
+                        case "v":
+                            var vertex = ParseVertex(args);
+                            vertices.Add(vertex);
+                            break;
+                        case "vt":
+                            var texture = ParseTexture(args);
+                            textures.Add(texture);
+                            break;
+                        case "vn":
+                            var normal = ParseNormal(args);
+                            normals.Add(normal);
+                            break;
+                        case "f":
+                            var face = args
+                                .Select(f => ParseFace(Split(f, FaceSeparator)) - Vector3.One)
+                                .ToList();
+                            faces.Add(face);
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(line, e);
                 }
             }
             return new Obj()
@@ -53,6 +63,11 @@ namespace CGA.Model
                 Normals = normals,
                 Faces = faces
             };
+        }
+
+        private static string[] Split(string s, char[] separator)
+        {
+            return s.Split(separator, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private static Vector4 ParseVertex(IEnumerable<string> args)

@@ -7,22 +7,20 @@ namespace CGA.Model
     {
         public static Matrix4x4 CreateTranslation(float x, float y, float z)
         {
-            /*return new Matrix4x4(
-                1, 0, 0, x,
-                0, 1, 0, y,
-                0, 0, 1, z,
-                0, 0, 0, 1);*/
-            return Matrix4x4.CreateTranslation(x, y, z);
+            return new Matrix4x4(
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                x, y, z, 1);
         }
 
         public static Matrix4x4 CreateScale(float scale)
         {
-            /*return new Matrix4x4(
+            return new Matrix4x4(
                 scale, 0, 0, 0,
                 0, scale, 0, 0,
                 0, 0, scale, 0,
-                0, 0, 0, 1);*/
-            return Matrix4x4.CreateScale(scale);
+                0, 0, 0, 1);
         }
 
         public static Matrix4x4 CreateRotationX(float angle)

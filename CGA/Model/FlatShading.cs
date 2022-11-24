@@ -23,27 +23,33 @@ namespace CGA.Model
         public override void DrawModel()
         {
             ZBuffer.Reset();
-            _ = Parallel.ForEach(Obj.GetTriangleFaces(), face =>
-            {
-                var f = face.ToList();
-                if (IsFaceVisible(f))
+            var faces = Obj.GetTriangleFaces()
+                .Select(face => face.ToList())
+                .Where(IsFaceVisible)
+                .Select(face =>
                 {
-                    var color = GetFaceColor(f, Color);
-                    DrawFace(f, color);
+                    var color = GetFaceColor(face, Color);
+                    var points = GetFacePoints(face)
+                        .Where(point => IsValidPoint(point.X, point.Y, point.Z));
+                    return (Color: color, Points: points);
+                });
+            _ = Parallel.ForEach(faces, face =>
+            {
+                var points = face.Points.ToList();
+                var pointsInFace = GetFaceIhnerPoints(points);
+
+                lock (ZBuffer)
+                {
+                    foreach (var (X, Y, Z) in points.Concat(pointsInFace))
+                    {
+                        if (Z <= ZBuffer[X, Y])
+                        {
+                            ZBuffer[X, Y] = Z;
+                            DrawPoint(X, Y, face.Color);
+                        }
+                    }
                 }
             });
-        }
-
-        protected override void DrawPoint(int x, int y, float z, Color color)
-        {
-            if (x >= 0 && x < Buffer.Width &&
-                y >= 0 && y < Buffer.Height &&
-                z > 0 && z < 1 &&
-                z <= ZBuffer[x, y])
-            {
-                Buffer[x, y] = color;
-                ZBuffer[x, y] = z;
-            }
         }
 
         private Color GetFaceColor(IList<Vector3> face, Color color)
@@ -63,6 +69,37 @@ namespace CGA.Model
             var averageG = Convert.ToByte(colors.Select(color => (int)color.G).Average());
             var averageB = Convert.ToByte(colors.Select(color => (int)color.B).Average());
             return Color.FromArgb(averageA, averageR, averageG, averageB);
+        }
+
+        private IEnumerable<(int X, int Y, float Z)> GetFaceIhnerPoints(IEnumerable<(int X, int Y, float Z)> sidePoints)
+        {
+            if (!sidePoints.Any())
+                return Enumerable.Empty<(int X, int Y, float Z)>();
+            var minY = sidePoints.Select(pixel => pixel.Y).Min();
+            var maxY = sidePoints.Select(pixel => pixel.Y).Max();
+
+            return Enumerable.Range(minY, maxY - minY)
+                .SelectMany(y =>
+                {
+                    var points = sidePoints
+                        .Where(point => point.Y == y)
+                        .OrderBy(point => point.X)
+                        .ToList();
+
+                    if (!points.Any())
+                        return Enumerable.Empty<(int X, int Y, float Z)>();
+
+                    var (X1, Y1, Z1) = points.First();
+                    var (X2, Y2, Z2) = points.Last();
+
+                    int dx = Math.Abs(X2 - X1);
+                    float dz = Z2 - Z1;
+                    float deltaZ = dz / dx;
+
+                    return Enumerable
+                        .Range(X1, X2 - X1)
+                        .Select(x => (X: x, Y: y, Z: x * deltaZ));
+                });
         }
     }
 }
