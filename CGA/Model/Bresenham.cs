@@ -35,9 +35,12 @@ namespace CGA.Model
 
         private Vector3 GetFaceNormal(IList<Vector3> face)
         {
-            var v1 = GetFacePoint(face, 0).ToVector3();
-            var v2 = GetFacePoint(face, 1).ToVector3();
-            var v3 = GetFacePoint(face, 2).ToVector3();
+            var p1 = GetFacePoint(face, 0);
+            var p2 = GetFacePoint(face, 1);
+            var p3 = GetFacePoint(face, 2);
+            var v1 = new Vector3(p1.X, p1.Y, p1.Z);
+            var v2 = new Vector3(p2.X, p2.Y, p2.Z);
+            var v3 = new Vector3(p3.X, p3.Y, p3.Z);
             return GetNormal(v1, v2, v3);
         }
 
@@ -119,7 +122,7 @@ namespace CGA.Model
                     z += signZ * deltaZ;
                 }
             }
-            yield return (x, y, z);
+            yield return (x2, y2, z2);
         }
 
         public bool IsValidPoint(int x, int y, float z)

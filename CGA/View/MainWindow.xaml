@@ -46,15 +46,16 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            
+
             <Button Content="Load obj"
                     Command="{Binding LoadObjCommand}"
                     Grid.Column="0" 
                     Grid.ColumnSpan="2"
                     Grid.Row="0"
                     Margin="5"/>
-            
+
             <Label Content="Model X"
                    Grid.Column="0" 
                    Grid.Row="1"/>
@@ -204,14 +205,31 @@
             <StackPanel Grid.Column="1"
                         Grid.Row="14"
                         Grid.ColumnSpan="2">
-                <RadioButton x:Name="bresenhamRadoiButton" 
+                <RadioButton x:Name="bresenhamRadioButton" 
                              Content="Bresenham"
                              IsChecked="True"
-                             Checked="Bresenham_Checked"
+                             Checked="OnRenderTypeChanged"
                              Margin="3"/>
-                <RadioButton x:Name="flatShadingRadoiButton"
+                <RadioButton x:Name="flatShadingRadioButton"
                              Content="FlatShading"
-                             Checked="Bresenham_Checked"
+                             Checked="OnRenderTypeChanged"
+                             Margin="3"/>
+            </StackPanel>
+
+            <Label Content="Lighting Type"
+                   Grid.Column="0"
+                   Grid.Row="15"/>
+            <StackPanel Grid.Column="1"
+                        Grid.Row="15"
+                        Grid.ColumnSpan="2">
+                <RadioButton x:Name="lambertRadioButton" 
+                             Content="Lambert"
+                             IsChecked="True"
+                             Checked="OnLightingTypeChanged"
+                             Margin="3"/>
+                <RadioButton x:Name="phongRadioButton"
+                             Content="Phong"
+                             Checked="OnLightingTypeChanged"
                              Margin="3"/>
             </StackPanel>
         </Grid>

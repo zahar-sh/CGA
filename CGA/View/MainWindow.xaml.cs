@@ -14,17 +14,32 @@ namespace CGA
             InitializeComponent();
         }
 
-        private void Bresenham_Checked(object sender, RoutedEventArgs e)
+        private void OnRenderTypeChanged(object sender, RoutedEventArgs e)
         {
             if (DataContext is MainWindowViewModel viewModel)
             {
-                if (bresenhamRadoiButton.IsChecked.GetValueOrDefault())
+                if (bresenhamRadioButton.IsChecked.GetValueOrDefault())
                 {
                     viewModel.PainterType = PainterType.Bresenham;
                 }
-                else if (flatShadingRadoiButton.IsChecked.GetValueOrDefault())
+                else if (flatShadingRadioButton.IsChecked.GetValueOrDefault())
                 {
                     viewModel.PainterType = PainterType.FlatShading;
+                }
+            }
+        }
+
+        private void OnLightingTypeChanged(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                if (lambertRadioButton.IsChecked.GetValueOrDefault())
+                {
+                    viewModel.LightingType = LightingType.Lambert;
+                }
+                else if (phongRadioButton.IsChecked.GetValueOrDefault())
+                {
+                    viewModel.LightingType = LightingType.Phong;
                 }
             }
         }

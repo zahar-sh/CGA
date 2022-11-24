@@ -75,6 +75,7 @@ namespace CGA.Model
         {
             if (!sidePoints.Any())
                 return Enumerable.Empty<(int X, int Y, float Z)>();
+
             var minY = sidePoints.Select(pixel => pixel.Y).Min();
             var maxY = sidePoints.Select(pixel => pixel.Y).Max();
 

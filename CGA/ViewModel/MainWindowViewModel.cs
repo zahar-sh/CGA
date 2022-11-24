@@ -11,6 +11,7 @@ using System.Linq;
 using System.Numerics;
 using System.Windows;
 using CGA1.Model;
+using System.Windows.Navigation;
 
 namespace CGA.ViewModel
 {
@@ -45,6 +46,7 @@ namespace CGA.ViewModel
         private Obj _obj;
         private Color _color;
         private PainterType _painterType;
+        private LightingType _lightingType;
 
         public MainWindowViewModel()
         {
@@ -57,6 +59,7 @@ namespace CGA.ViewModel
             CameraPosZ = 10;
             Color = Color.FromRgb(128, 128, 128);
             PainterType = PainterType.Bresenham;
+            LightingType = LightingType.Lambert;
             FileDialog = new OpenFileDialog
             {
                 Filter = "Object | *.obj",
@@ -96,6 +99,7 @@ namespace CGA.ViewModel
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
         public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
         public PainterType PainterType { get => _painterType; set => SetProperty(ref _painterType, value, nameof(PainterType)); }
+        public LightingType LightingType { get => _lightingType; set => SetProperty(ref _lightingType, value, nameof(LightingType)); }
 
         public ICommand LoadObjCommand { get; }
 
@@ -150,6 +154,7 @@ namespace CGA.ViewModel
                 case nameof(Obj):
                 case nameof(Color):
                 case nameof(PainterType):
+                case nameof(LightingType):
                     Repaint();
                     break;
             }
@@ -198,12 +203,35 @@ namespace CGA.ViewModel
                     bresenham.DrawModel();
                     break;
                 case PainterType.FlatShading:
-                    var lightning = new LambertLighting(new Vector3(0, 0, 1));
+                    var lightning = GetLighting();
                     var flatShading = new FlatShading(model, ColorBuffer, Color, lightning);
                     flatShading.DrawModel();
                     break;
             }
             NotifyPropertyChanged(nameof(ColorBuffer));
+        }
+
+        private ILighting GetLighting()
+        {
+            var pos = new Vector3(0, 0, 1);
+            switch (LightingType)
+            {
+                case LightingType.Lambert:
+                    return new LambertLighting(pos);
+                case LightingType.Phong:
+                    var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
+                    var backgroundFactor = new Vector3(0.3f, 0.3f, 0.3f);
+                    var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
+                    var mirrorFactor = new Vector3(1.0f, 1.0f, 1.0f);
+                    var ambientColor = new Vector3(255.0f, 0.0f, 0.0f);
+                    var reflectionColor = new Vector3(255.0f, 255.0f, 255.0f);
+                    var shinessFactor = 32.0f;
+                    var lightning = new PhongLighting(pos, direction, backgroundFactor, diffuseFactor,
+                        mirrorFactor, ambientColor, reflectionColor, shinessFactor);
+                    return lightning;
+                default:
+                    return null;
+            }
         }
 
         private static float ToRadians(float angle)

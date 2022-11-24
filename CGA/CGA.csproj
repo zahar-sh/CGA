@@ -75,12 +75,13 @@
     <Compile Include="Model\FlatShading.cs" />
     <Compile Include="Model\ILighting.cs" />
     <Compile Include="Model\LambertLighting.cs" />
+    <Compile Include="Model\LightingType.cs" />
     <Compile Include="Model\Matrices.cs" />
     <Compile Include="Model\Matrix.cs" />
     <Compile Include="Model\Obj.cs" />
     <Compile Include="Model\ObjParser.cs" />
     <Compile Include="Model\PainterType.cs" />
-    <Compile Include="Model\VectorExtensions.cs" />
+    <Compile Include="Model\PhongLighting.cs" />
     <Compile Include="Model\ColorBuffer.cs" />
     <Compile Include="Model\ZBuffer.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
