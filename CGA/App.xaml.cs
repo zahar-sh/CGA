@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace CGA1
+namespace CGA
 {
     /// <summary>
     /// Interaction logic for App.xaml

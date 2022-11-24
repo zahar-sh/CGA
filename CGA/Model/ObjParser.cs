@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-namespace CGA1.Model
+namespace CGA.Model
 {
     public static class ObjParser
     {

@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 
-namespace CGA1.Model
+namespace CGA.Model
 {
     public class Obj
     {
@@ -37,6 +37,21 @@ namespace CGA1.Model
                 Normals = normals,
                 Faces = Faces.ToList()
             };
+        }
+
+        private IEnumerable<Vector3> CreateFace(Vector3 v1, Vector3 v2, Vector3 v3)
+        {
+            yield return v1;
+            yield return v2;
+            yield return v3;
+        }
+
+        public IEnumerable<IEnumerable<Vector3>> GetTriangleFaces()
+        {
+            return Faces
+                .SelectMany(face => Enumerable
+                    .Range(1, face.Count - 2)
+                    .Select(i => CreateFace(face[0], face[i], face[i + 1])));
         }
 
         public override string ToString()

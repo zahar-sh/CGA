@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CGA1.Model
+namespace CGA.Model
 {
     public class Matrix<T>
     {

@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Windows.Media;
 
-namespace CGA1.Model
+namespace CGA.Model
 {
-    public class Bresenham
+    public class Bresenham : IObjPainter
     {
-        public Obj Obj { get; }
-
-        public ColorBuffer Buffer { get; }
-
-        public Color Color { get; }
-
         public Bresenham(Obj obj, ColorBuffer buffer, Color color)
         {
             Obj = obj;
@@ -22,18 +15,24 @@ namespace CGA1.Model
             Color = color;
         }
 
-        private static Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
+        public Obj Obj { get; }
+
+        public ColorBuffer Buffer { get; }
+
+        public Color Color { get; }
+
+        protected static Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             return Vector3.Normalize(Vector3.Cross(v2 - v1, v3 - v1));
         }
 
-        private Vector4 GetFacePoint(IList<Vector3> face, int i)
+        protected Vector4 GetFacePoint(IList<Vector3> face, int i)
         {
-            int index = (int)face[i].X;
+            int index = Convert.ToInt32(face[i].X);
             return Obj.Vertices[index];
         }
 
-        private Vector3 GetFaceNormal(IList<Vector3> face)
+        protected Vector3 GetFaceNormal(IList<Vector3> face)
         {
             var v1 = GetFacePoint(face, 0).ToVector3();
             var v2 = GetFacePoint(face, 1).ToVector3();
@@ -41,55 +40,69 @@ namespace CGA1.Model
             return GetNormal(v1, v2, v3);
         }
 
-        private bool IsFaceVisible(IList<Vector3> face)
+        protected bool IsFaceVisible(IList<Vector3> face)
         {
             var normal = GetFaceNormal(face);
             return normal.Z < 0;
         }
 
-        public void DrawModel()
+        public virtual void DrawModel()
         {
-            _ = Parallel.ForEach(Obj.Faces.Where(IsFaceVisible), DrawFace);
+            _ = Parallel.ForEach(Obj.Faces, face =>
+            {
+                if (IsFaceVisible(face))
+                {
+                    DrawFace(face, Color);
+                }
+            });
         }
 
-        private void DrawFace(IList<Vector3> face)
+        protected void DrawFace(IList<Vector3> face, Color color)
         {
             var lastFaceIndex = face.Count - 1;
             for (int i = 0; i < lastFaceIndex; i++)
             {
-                DrawSide(face, i, i + 1);
+                DrawSide(face, i, i + 1, color);
             }
-            DrawSide(face, 0, lastFaceIndex);
+            DrawSide(face, 0, lastFaceIndex, color);
         }
 
-        private void DrawSide(IList<Vector3> face, int index1, int index2)
+        protected void DrawSide(IList<Vector3> face, int index1, int index2, Color color)
         {
-            var v1 = GetFacePoint(face, index1).ToVector3();
-            var v2 = GetFacePoint(face, index2).ToVector3();
-            DrawLine(v1, v2);
+            var v1 = GetFacePoint(face, index1);
+            var v2 = GetFacePoint(face, index2);
+
+            var x1 = Convert.ToInt32(v1.X);
+            var y1 = Convert.ToInt32(v1.Y);
+            var z1 = v1.Z;
+
+            var x2 = Convert.ToInt32(v2.X);
+            var y2 = Convert.ToInt32(v2.Y);
+            var z2 = v2.Z;
+            DrawLine(x1, y1, z1, x2, y2, z2, color);
         }
 
-        private void DrawLine(Vector3 v1, Vector3 v2)
+        protected void DrawLine(int x1, int y1, float z1, int x2, int y2, float z2, Color color)
         {
-            int dx = (int)Math.Abs(v2.X - v1.X);
-            int dy = (int)Math.Abs(v2.Y - v1.Y);
-            float dz = Math.Abs(v2.Z - v1.Z);
+            int dx = Math.Abs(x2 - x1);
+            int dy = Math.Abs(y2 - y1);
+            float dz = Math.Abs(z2 - z1);
 
-            int signX = v1.X < v2.X ? 1 : -1;
-            int signY = v1.Y < v2.Y ? 1 : -1;
-            int signZ = v1.Z < v2.Z ? 1 : -1;
+            int signX = Math.Sign(x2 - x1);
+            int signY = Math.Sign(y2 - y1);
+            int signZ = Math.Sign(z2 - z1);
 
-            int x = (int)v1.X;
-            int y = (int)v1.Y;
-            float z = v1.Z;
+            int x = x1;
+            int y = y1;
+            float z = z1;
 
             float deltaZ = dz / dy;
 
             int err = dx - dy;
 
-            while (x != (int)v2.X || y != (int)v2.Y)
+            while (x != x2 || y != y2)
             {
-                DrawPoint(x, y, z);
+                DrawPoint(x, y, z, color);
 
                 int err2 = err * 2;
                 if (err2 > -dy)
@@ -104,16 +117,16 @@ namespace CGA1.Model
                     z += signZ * deltaZ;
                 }
             }
-            DrawPoint((int)v2.X, (int)v2.Y, v2.Z);
+            DrawPoint(x2, y2, z2, color);
         }
 
-        private void DrawPoint(int x, int y, float z)
+        protected virtual void DrawPoint(int x, int y, float z, Color color)
         {
             if (x >= 0 && x < Buffer.Width &&
                 y >= 0 && y < Buffer.Height &&
                 z > 0 && z < 1)
             {
-                Buffer[x, y] = Color;
+                Buffer[x, y] = color;
             }
         }
     }

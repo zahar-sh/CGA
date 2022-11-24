@@ -1,9 +1,7 @@
-﻿using System.Windows.Media;
-
-namespace CGA1.Model
+﻿namespace CGA.Model
 {
     public interface IObjPainter
     {
-        void Paint(Obj obj, ColorBuffer image, Color color);
+        void DrawModel();
     }
 }

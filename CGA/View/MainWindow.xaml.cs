@@ -1,7 +1,7 @@
-﻿using CGA1.ViewModel;
+﻿using CGA.ViewModel;
 using System.Windows;
 
-namespace CGA1
+namespace CGA
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

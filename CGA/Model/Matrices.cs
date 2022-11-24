@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace CGA1.Model
+namespace CGA.Model
 {
     public static class Matrices
     {

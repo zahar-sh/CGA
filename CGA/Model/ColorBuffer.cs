@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace CGA1.Model
+namespace CGA.Model
 {
     public class ColorBuffer : Matrix<Color>
     {
@@ -31,14 +31,14 @@ namespace CGA1.Model
                     Enumerable
                     .Range(0, Width)
                     .Select(x => Data[x, y])
-                    .SelectMany(color => GetColorComponents(color))))
+                    .SelectMany(color => GetBgraComponents(color))))
                 .Select(task => task.GetAwaiter().GetResult())
                 .SelectMany(line => line)
                 .ToArray();
             bitmap.WritePixels(new Int32Rect(0, 0, Width, Height), bytes, bitmap.BackBufferStride, 0);
         }
 
-        private IEnumerable<byte> GetColorComponents(Color color)
+        private IEnumerable<byte> GetBgraComponents(Color color)
         {
             yield return color.B;
             yield return color.G;

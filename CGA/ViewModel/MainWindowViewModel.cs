@@ -1,5 +1,5 @@
-﻿using CGA1.Command;
-using CGA1.Model;
+﻿using CGA.Command;
+using CGA.Model;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -8,8 +8,9 @@ using System.IO;
 using System;
 using System.Windows.Media.Imaging;
 using System.Linq;
+using System.Numerics;
 
-namespace CGA1.ViewModel
+namespace CGA.ViewModel
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
@@ -39,8 +40,6 @@ namespace CGA1.ViewModel
         private float _cameraPitch;
         private float _cameraRoll;
 
-        private IObjPainter _objPainter;
-
         private Obj _obj;
 
         private Color _color;
@@ -54,7 +53,6 @@ namespace CGA1.ViewModel
             Fov = 60;
             ModelScale = 0.5f;
             CameraPosZ = 10;
-            ObjPainter = new BresenhamPainter();
             Color = Colors.Black;
             FileDialog = new OpenFileDialog
             {
@@ -91,8 +89,6 @@ namespace CGA1.ViewModel
         public float CameraYaw { get => _cameraYaw; set => SetProperty(ref _cameraYaw, value, nameof(CameraYaw)); }
         public float CameraPitch { get => _cameraPitch; set => SetProperty(ref _cameraPitch, value, nameof(CameraPitch)); }
         public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value, nameof(CameraRoll)); }
-
-        public IObjPainter ObjPainter { get => _objPainter; set => SetProperty(ref _objPainter, value, nameof(ObjPainter)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
 
@@ -148,7 +144,6 @@ namespace CGA1.ViewModel
                 case nameof(CameraYaw):
                 case nameof(CameraPitch):
                 case nameof(CameraRoll):
-                case nameof(ObjPainter):
                 case nameof(Obj):
                 case nameof(Color):
                     Repaint();
@@ -182,9 +177,12 @@ namespace CGA1.ViewModel
                 ToRadians(ModelYaw), ToRadians(ModelPitch), ToRadians(ModelRoll), ModelScale);
 
             var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
+
             ColorBuffer.Fill(Colors.White);
-            Console.WriteLine(model.ToString());
-            ObjPainter.Paint(model, ColorBuffer, Color);
+
+            var lightning = new LambertLighting(new Vector3(0, 0, 1));
+            var painter = new FlatShading(model, ColorBuffer, Color, lightning);
+            painter.DrawModel();
 
             NotifyPropertyChanged(nameof(ColorBuffer));
         }

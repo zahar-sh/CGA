@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CGA1.Properties
+namespace CGA.Properties
 {
 
 

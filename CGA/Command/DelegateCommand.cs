@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace CGA1.Command
+namespace CGA.Command
 {
     public class DelegateCommand : ICommand
     {

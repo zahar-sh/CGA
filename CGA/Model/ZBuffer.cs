@@ -1,4 +1,4 @@
-﻿namespace CGA1.Model
+﻿namespace CGA.Model
 {
     public class ZBuffer : Matrix<float>
     {
