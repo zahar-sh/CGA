@@ -22,9 +22,22 @@ namespace CGA.Model
             SetElements((x, y) => color);
         }
 
-        public void Write(WriteableBitmap bitmap)
+        public void FromBytes(byte[] bytes)
         {
-            var bytes = Enumerable
+            SetElements((x, y) =>
+            {
+                var index = y * Height + x * 4;
+                var b = bytes[index];
+                var g = bytes[index + 1];
+                var r = bytes[index + 2];
+                var a = bytes[index + 3];
+                return Color.FromArgb(a, r, g, b);
+            });
+        }
+
+        public byte[] ToBytes()
+        {
+            return Enumerable
                 .Range(0, Height)
                 .SelectMany(y => Enumerable
                     .Range(0, Width)
@@ -33,10 +46,29 @@ namespace CGA.Model
                 .AsParallel()
                 .AsOrdered()
                 .ToArray();
+        }
+
+        public void Write(WriteableBitmap bitmap)
+        {
+            var bytes = ToBytes();
             bitmap.WritePixels(new Int32Rect(0, 0, Width, Height), bytes, bitmap.BackBufferStride, 0);
         }
 
-        private IEnumerable<byte> GetBgraComponents(Color color)
+        public static ColorBuffer From(BitmapSource image)
+        {
+            var bitmap = new WriteableBitmap(new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0));
+            var width = bitmap.PixelWidth;
+            var height = bitmap.PixelHeight;
+
+            var bytes = new byte[height * width * 4];
+            bitmap.CopyPixels(bytes, bitmap.BackBufferStride, 0);
+
+            var buffer = new ColorBuffer(width, height);
+            buffer.FromBytes(bytes);
+            return buffer;
+        }
+
+        private static IEnumerable<byte> GetBgraComponents(Color color)
         {
             yield return color.B;
             yield return color.G;

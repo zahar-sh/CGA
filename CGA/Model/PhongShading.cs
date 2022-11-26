@@ -8,21 +8,17 @@ namespace CGA.Model
 {
     public class PhongShading : Bresenham
     {
-        public PhongShading(Obj obj, ColorBuffer buffer, Color color, PhongLighting lighting, ColorBuffer normalsTexture, ColorBuffer diffuseTexture, ColorBuffer emissionTexture, ColorBuffer spcularTexture, Matrix4x4? modelMatrix)
+        public PhongShading(Obj obj, ColorBuffer buffer, Color color, PhongLighting lighting, Matrix4x4? modelMatrix)
             : base(obj, buffer, color)
         {
-            if (normalsTexture != null && modelMatrix == null)
+            if (Obj.NormalsTexture != null && modelMatrix == null)
             {
                 throw new NullReferenceException(nameof(modelMatrix));
             }
             Lighting = lighting;
             ZBuffer = new ZBuffer(buffer.Width, buffer.Height);
-            NormalsTexture = normalsTexture;
-            DiffuseTexture = diffuseTexture;
-            EmissionTexture = emissionTexture;
-            SpecularTexture = spcularTexture;
-            IsTexturesEnabled = normalsTexture != null || diffuseTexture != null ||
-                emissionTexture != null || spcularTexture != null;
+            IsTexturesEnabled = Obj.NormalsTexture != null || Obj.DiffuseTexture != null ||
+                Obj.EmissionTexture != null || Obj.SpecularTexture != null;
             ModelMatrix = modelMatrix;
         }
 
@@ -31,14 +27,6 @@ namespace CGA.Model
         public ZBuffer ZBuffer { get; }
 
         public Vector3 BrightnessFacor { get; }
-
-        public ColorBuffer NormalsTexture { get; }
-
-        public ColorBuffer DiffuseTexture { get; }
-
-        public ColorBuffer SpecularTexture { get; }
-
-        public ColorBuffer EmissionTexture { get; }
 
         public Matrix4x4? ModelMatrix { get; }
 
@@ -56,12 +44,13 @@ namespace CGA.Model
                 {
                     foreach (var p in face.Points)
                     {
-                        var color = IsTexturesEnabled ?
-                            GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
-                            Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
                         if (p.Z <= ZBuffer[p.X, p.Y])
                         {
                             ZBuffer[p.X, p.Y] = p.Z;
+
+                            var color = IsTexturesEnabled ?
+                            GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
+                            Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
                             DrawPoint(p.X, p.Y, Color);
                         }
                     }
@@ -80,31 +69,31 @@ namespace CGA.Model
 
         private Color GetPointColor(Vector3 normal, Vector3 texel)
         {
-            if (DiffuseTexture is null)
+            if (Obj.DiffuseTexture is null)
                 return Color.FromScRgb(0f, 0f, 0f, 0f);
 
-            var x = Convert.ToInt32(texel.X * DiffuseTexture.Width);
-            var y = Convert.ToInt32((1 - texel.Y) * DiffuseTexture.Height);
+            var x = Convert.ToInt32(texel.X) * Obj.DiffuseTexture.Width;
+            var y = Convert.ToInt32(1 - texel.Y) * Obj.DiffuseTexture.Height;
 
             if (x < 0 || y < 0)
                 return Color.FromScRgb(1f, 0f, 0f, 0f);
 
-            x %= DiffuseTexture.Width;
-            y %= DiffuseTexture.Height;
+            x %= Obj.DiffuseTexture.Width;
+            y %= Obj.DiffuseTexture.Height;
 
-            if (NormalsTexture != null)
+            if (Obj.NormalsTexture != null)
             {
-                var v = From(NormalsTexture[x, y]) * 2 - new Vector3(255);
+                var v = From(Obj.NormalsTexture[x, y]) * 2 - new Vector3(255);
                 normal = Vector3.Normalize(Vector3.TransformNormal(Vector3.Normalize(v), ModelMatrix.Value));
             }
 
-            var backgroundLighting = From(DiffuseTexture[x, y]) * Lighting.AmbientColor;
-            var diffuseLighting = From(DiffuseTexture[x, y]) * Math.Max(Vector3.Dot(normal, Lighting.Position), 0);
+            var backgroundLighting = From(Obj.DiffuseTexture[x, y]) * Lighting.AmbientColor;
+            var diffuseLighting = From(Obj.DiffuseTexture[x, y]) * Math.Max(Vector3.Dot(normal, Lighting.Position), 0);
             var reflectionVector = Vector3.Normalize(Vector3.Reflect(Lighting.Position, normal));
-            var mirrorLighting = SpecularTexture is null ? Vector3.Zero :
-                From(SpecularTexture[x, y]) * (float)Math.Pow(Math.Max(0, Vector3.Dot(Lighting.Direction, reflectionVector)), Lighting.ShinessFactor);
-            var emissionLighting = EmissionTexture is null ? Vector3.Zero :
-                           From(EmissionTexture[x, y]) * Vector3.One;
+            var mirrorLighting = Obj.SpecularTexture is null ? Vector3.Zero :
+                From(Obj.SpecularTexture[x, y]) * (float)Math.Pow(Math.Max(0, Vector3.Dot(Lighting.Direction, reflectionVector)), Lighting.ShinessFactor);
+            var emissionLighting = Obj.EmissionTexture is null ? Vector3.Zero :
+                           From(Obj.EmissionTexture[x, y]) * Vector3.One;
             var resultLighting = (backgroundLighting + diffuseLighting + mirrorLighting + emissionLighting) / 255f;
             return Color.FromScRgb(1f, resultLighting.X, resultLighting.Y, resultLighting.Z);
         }

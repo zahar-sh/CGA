@@ -14,6 +14,14 @@ namespace CGA.Model
 
         public IList<IList<Vector3>> Faces { get; set; }
 
+        public ColorBuffer NormalsTexture { get; set; }
+
+        public ColorBuffer DiffuseTexture { get; set; }
+
+        public ColorBuffer SpecularTexture { get; set; }
+
+        public ColorBuffer EmissionTexture { get; set; }
+
         public Obj Transform(Matrix4x4 viewportMatrix, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix, Matrix4x4 modelMatrix)
         {
             var worldProjectionMatrix = modelMatrix * viewMatrix * projectionMatrix;
@@ -35,7 +43,11 @@ namespace CGA.Model
                 Vertices = vertices,
                 Textures = Textures.ToList(),
                 Normals = normals,
-                Faces = Faces.ToList()
+                Faces = Faces.ToList(),
+                NormalsTexture = NormalsTexture,
+                DiffuseTexture = DiffuseTexture,
+                EmissionTexture = EmissionTexture,
+                SpecularTexture = SpecularTexture
             };
         }
 

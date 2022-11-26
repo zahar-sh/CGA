@@ -8,8 +8,8 @@ using System.IO;
 using System;
 using System.Windows.Media.Imaging;
 using System.Numerics;
-using System.Windows;
 using CGA1.Model;
+using System.Threading.Tasks;
 
 namespace CGA.ViewModel
 {
@@ -42,10 +42,6 @@ namespace CGA.ViewModel
         private float _cameraRoll;
 
         private Obj _obj;
-        private ColorBuffer _normalsTexture;
-        private ColorBuffer _diffuseTexture;
-        private ColorBuffer _specularTexture;
-        private ColorBuffer _emissionTexture;
         private Color _color;
         private PainterType _painterType;
         private LightingType _lightingType;
@@ -99,10 +95,6 @@ namespace CGA.ViewModel
         public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value, nameof(CameraRoll)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
-        public ColorBuffer NormalsTexture { get => _normalsTexture; set => SetProperty(ref _normalsTexture, value, nameof(NormalsTexture)); }
-        public ColorBuffer DiffuseTexture { get => _diffuseTexture; set => SetProperty(ref _diffuseTexture, value, nameof(DiffuseTexture)); }
-        public ColorBuffer SpecularTexture { get => _specularTexture; set => SetProperty(ref _specularTexture, value, nameof(SpecularTexture)); }
-        public ColorBuffer EmissionTexture { get => _emissionTexture; set => SetProperty(ref _emissionTexture, value, nameof(EmissionTexture)); }
         public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
         public PainterType PainterType { get => _painterType; set => SetProperty(ref _painterType, value, nameof(PainterType)); }
         public LightingType LightingType { get => _lightingType; set => SetProperty(ref _lightingType, value, nameof(LightingType)); }
@@ -172,17 +164,53 @@ namespace CGA.ViewModel
             if (open)
             {
                 var fileName = FileDialog.FileName;
-                using (var reader = new StreamReader(new FileStream(fileName, FileMode.Open)))
-                {
-                    try
-                    {
-                        Obj = ObjParser.Parse(reader);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                    }
-                }
+                Obj = LoadObj(fileName);
+            }
+        }
+
+        private static Obj LoadObj(string fileName)
+        {
+            var objTask = Task.Run(() => ParseObj(fileName));
+            var directory = Path.GetDirectoryName(fileName);
+            var normalsTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Normal.png"))));
+            var diffuseTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Diffuse.png"))));
+            var specularTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Specular.png"))));
+            var emissionTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Emission.png"))));
+
+            var obj = objTask.GetAwaiter().GetResult();
+            obj.NormalsTexture = normalsTextureTask.GetAwaiter().GetResult();
+            obj.DiffuseTexture = diffuseTextureTask.GetAwaiter().GetResult();
+            obj.SpecularTexture = specularTextureTask.GetAwaiter().GetResult();
+            obj.EmissionTexture = emissionTextureTask.GetAwaiter().GetResult();
+            return obj;
+        }
+
+        private static Obj ParseObj(string fileName)
+        {
+            using (var reader = new StreamReader(new FileStream(fileName, FileMode.Open)))
+            {
+                return ObjParser.Parse(reader);
+            }
+        }
+
+        private static ColorBuffer LoadTexture(string path)
+        {
+            var image = new BitmapImage(new Uri(path, UriKind.Relative))
+            {
+                CreateOptions = BitmapCreateOptions.None
+            };
+            return ColorBuffer.From(image);
+        }
+
+        private static T SneakyThrows<T>(Func<T> func) where T : class
+        {
+            try
+            {
+                return func();
+            } 
+            catch
+            {
+                return null;
             }
         }
 
@@ -215,8 +243,7 @@ namespace CGA.ViewModel
                     break;
                 case PainterType.PhongShading:
                     var lighting = GetPhongLighting();
-                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting,
-                        NormalsTexture, DiffuseTexture, EmissionTexture, SpecularTexture, modelMatrix);
+                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting, modelMatrix);
                     phongShading.DrawModel();
                     break;
             }
