@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -27,13 +26,12 @@ namespace CGA.Model
         {
             var bytes = Enumerable
                 .Range(0, Height)
-                .Select(y => Task.Run(() =>
-                    Enumerable
+                .SelectMany(y => Enumerable
                     .Range(0, Width)
                     .Select(x => Data[x, y])
-                    .SelectMany(color => GetBgraComponents(color))))
-                .Select(task => task.GetAwaiter().GetResult())
-                .SelectMany(line => line)
+                    .SelectMany(color => GetBgraComponents(color)))
+                .AsParallel()
+                .AsOrdered()
                 .ToArray();
             bitmap.WritePixels(new Int32Rect(0, 0, Width, Height), bytes, bitmap.BackBufferStride, 0);
         }

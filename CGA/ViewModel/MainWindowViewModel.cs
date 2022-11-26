@@ -7,11 +7,9 @@ using Microsoft.Win32;
 using System.IO;
 using System;
 using System.Windows.Media.Imaging;
-using System.Linq;
 using System.Numerics;
 using System.Windows;
 using CGA1.Model;
-using System.Windows.Navigation;
 
 namespace CGA.ViewModel
 {
@@ -222,8 +220,8 @@ namespace CGA.ViewModel
                     var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
                     var backgroundFactor = new Vector3(0.3f, 0.3f, 0.3f);
                     var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
-                    var mirrorFactor = new Vector3(1.0f, 1.0f, 1.0f);
-                    var ambientColor = new Vector3(255.0f, 0.0f, 0.0f);
+                    var mirrorFactor = new Vector3(0.3f, 0.3f, 0.3f);
+                    var ambientColor = new Vector3(255.0f, 255.0f, 0.0f);
                     var reflectionColor = new Vector3(255.0f, 255.0f, 255.0f);
                     var shinessFactor = 32.0f;
                     var lightning = new PhongLighting(pos, direction, backgroundFactor, diffuseFactor,

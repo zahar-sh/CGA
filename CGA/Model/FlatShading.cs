@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace CGA.Model
@@ -23,24 +22,14 @@ namespace CGA.Model
         public override void DrawModel()
         {
             ZBuffer.Reset();
-            var faces = Obj.GetTriangleFaces()
+            Obj.GetTriangleFaces()
                 .Select(face => face.ToList())
                 .Where(IsFaceVisible)
-                .Select(face =>
+                .Select(GetFaceColorPoints)
+                .AsParallel()
+                .ForAll(face =>
                 {
-                    var color = GetFaceColor(face, Color);
-                    var points = GetFacePoints(face)
-                        .Where(point => IsValidPoint(point.X, point.Y, point.Z));
-                    return (Color: color, Points: points);
-                });
-            _ = Parallel.ForEach(faces, face =>
-            {
-                var points = face.Points.ToList();
-                var pointsInFace = GetFaceIhnerPoints(points);
-
-                lock (ZBuffer)
-                {
-                    foreach (var (X, Y, Z) in points.Concat(pointsInFace))
+                    foreach (var (X, Y, Z) in face.Points)
                     {
                         if (Z <= ZBuffer[X, Y])
                         {
@@ -48,8 +37,18 @@ namespace CGA.Model
                             DrawPoint(X, Y, face.Color);
                         }
                     }
-                }
-            });
+                });
+        }
+
+        private (Color Color, IEnumerable<(int X, int Y, float Z)> Points) GetFaceColorPoints(IList<Vector3> face)
+        {
+            var color = GetFaceColor(face, Color);
+            var points = GetFacePoints(face)
+                .Where(point => IsValidPoint(point.X, point.Y, point.Z))
+                .ToList();
+            var pointsInFace = GetFaceIhnerPoints(points);
+            points.AddRange(pointsInFace);
+            return (color, points);
         }
 
         private Color GetFaceColor(IList<Vector3> face, Color color)
