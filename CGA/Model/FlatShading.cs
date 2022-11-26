@@ -22,11 +22,11 @@ namespace CGA.Model
         public override void DrawModel()
         {
             ZBuffer.Reset();
-            Obj.GetTriangleFaces()
+            var faces = Obj.GetTriangleFaces()
                 .Select(face => face.ToList())
                 .Where(IsFaceVisible)
-                .Select(GetFaceColorPoints)
-                .AsParallel()
+                .Select(GetFaceColorPoints);
+            faces.AsParallel()
                 .ForAll(face =>
                 {
                     foreach (var (X, Y, Z) in face.Points)
@@ -38,6 +38,7 @@ namespace CGA.Model
                         }
                     }
                 });
+
         }
 
         private (Color Color, IEnumerable<(int X, int Y, float Z)> Points) GetFaceColorPoints(IList<Vector3> face)

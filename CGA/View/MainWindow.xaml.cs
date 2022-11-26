@@ -26,6 +26,10 @@ namespace CGA
                 {
                     viewModel.PainterType = PainterType.FlatShading;
                 }
+                else if (phongShadingRadioButton.IsChecked.GetValueOrDefault())
+                {
+                    viewModel.PainterType = PainterType.PhongShading;
+                }
             }
         }
 

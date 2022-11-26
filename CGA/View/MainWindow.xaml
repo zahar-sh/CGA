@@ -214,6 +214,10 @@
                              Content="FlatShading"
                              Checked="OnRenderTypeChanged"
                              Margin="3"/>
+                <RadioButton x:Name="phongShadingRadioButton"
+                             Content="PhongShading"
+                             Checked="OnRenderTypeChanged"
+                             Margin="3"/>
             </StackPanel>
 
             <Label Content="Lighting Type"

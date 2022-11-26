@@ -27,10 +27,22 @@ namespace CGA.Model
             return Vector3.Normalize(Vector3.Cross(v2 - v1, v3 - v1));
         }
 
-        private Vector4 GetFacePoint(IList<Vector3> face, int i)
+        protected Vector4 GetFacePoint(IList<Vector3> face, int i)
         {
             int index = Convert.ToInt32(face[i].X);
             return Obj.Vertices[index];
+        }
+
+        protected Vector3 GetFaceTexture(IList<Vector3> face, int i)
+        {
+            int index = Convert.ToInt32(face[i].Y);
+            return Obj.Textures[index];
+        }
+
+        protected Vector3 GetFaceNormal(IList<Vector3> face, int i)
+        {
+            int index = Convert.ToInt32(face[i].Z);
+            return Obj.Normals[index];
         }
 
         private Vector3 GetFaceNormal(IList<Vector3> face)
@@ -52,14 +64,15 @@ namespace CGA.Model
 
         public virtual void DrawModel()
         {
-            var points = Obj.Faces
+            var faces = Obj.Faces
                 .Where(IsFaceVisible)
                 .SelectMany(GetFacePoints)
                 .Where(point => IsValidPoint(point.X, point.Y, point.Z));
-            _ = Parallel.ForEach(points, point =>
-            {
-                DrawPoint(point.X, point.Y, Color);
-            });
+            faces.AsParallel()
+                .ForAll(point =>
+                {
+                    DrawPoint(point.X, point.Y, Color);
+                });
         }
 
         public IEnumerable<(int X, int Y, float Z)> GetFacePoints(IList<Vector3> face)

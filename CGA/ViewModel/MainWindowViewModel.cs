@@ -42,6 +42,10 @@ namespace CGA.ViewModel
         private float _cameraRoll;
 
         private Obj _obj;
+        private ColorBuffer _normalsTexture;
+        private ColorBuffer _diffuseTexture;
+        private ColorBuffer _specularTexture;
+        private ColorBuffer _emissionTexture;
         private Color _color;
         private PainterType _painterType;
         private LightingType _lightingType;
@@ -95,6 +99,10 @@ namespace CGA.ViewModel
         public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value, nameof(CameraRoll)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
+        public ColorBuffer NormalsTexture { get => _normalsTexture; set => SetProperty(ref _normalsTexture, value, nameof(NormalsTexture)); }
+        public ColorBuffer DiffuseTexture { get => _diffuseTexture; set => SetProperty(ref _diffuseTexture, value, nameof(DiffuseTexture)); }
+        public ColorBuffer SpecularTexture { get => _specularTexture; set => SetProperty(ref _specularTexture, value, nameof(SpecularTexture)); }
+        public ColorBuffer EmissionTexture { get => _emissionTexture; set => SetProperty(ref _emissionTexture, value, nameof(EmissionTexture)); }
         public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
         public PainterType PainterType { get => _painterType; set => SetProperty(ref _painterType, value, nameof(PainterType)); }
         public LightingType LightingType { get => _lightingType; set => SetProperty(ref _lightingType, value, nameof(LightingType)); }
@@ -205,31 +213,41 @@ namespace CGA.ViewModel
                     var flatShading = new FlatShading(model, ColorBuffer, Color, lightning);
                     flatShading.DrawModel();
                     break;
+                case PainterType.PhongShading:
+                    var lighting = GetPhongLighting();
+                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting,
+                        NormalsTexture, DiffuseTexture, EmissionTexture, SpecularTexture, modelMatrix);
+                    phongShading.DrawModel();
+                    break;
             }
             NotifyPropertyChanged(nameof(ColorBuffer));
         }
 
         private ILighting GetLighting()
         {
-            var pos = new Vector3(0, 0, 1);
             switch (LightingType)
             {
                 case LightingType.Lambert:
-                    return new LambertLighting(pos);
+                    return new LambertLighting(new Vector3(0, 0, 1));
                 case LightingType.Phong:
-                    var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
-                    var backgroundFactor = new Vector3(0.3f, 0.3f, 0.3f);
-                    var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
-                    var mirrorFactor = new Vector3(0.3f, 0.3f, 0.3f);
-                    var ambientColor = new Vector3(255.0f, 255.0f, 0.0f);
-                    var reflectionColor = new Vector3(255.0f, 255.0f, 255.0f);
-                    var shinessFactor = 32.0f;
-                    var lightning = new PhongLighting(pos, direction, backgroundFactor, diffuseFactor,
-                        mirrorFactor, ambientColor, reflectionColor, shinessFactor);
-                    return lightning;
+                    return GetPhongLighting();
                 default:
                     return null;
             }
+        }
+
+        private PhongLighting GetPhongLighting()
+        {
+            var pos = new Vector3(0, 0, 1);
+            var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
+            var backgroundFactor = new Vector3(0.3f, 0.3f, 0.3f);
+            var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
+            var mirrorFactor = new Vector3(0.3f, 0.3f, 0.3f);
+            var ambientColor = new Vector3(255.0f, 255.0f, 0.0f);
+            var reflectionColor = new Vector3(255.0f, 255.0f, 255.0f);
+            var shinessFactor = 32.0f;
+            return new PhongLighting(pos, direction, backgroundFactor, diffuseFactor,
+                mirrorFactor, ambientColor, reflectionColor, shinessFactor);
         }
 
         private static float ToRadians(float angle)
