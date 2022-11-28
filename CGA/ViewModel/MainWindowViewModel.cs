@@ -172,10 +172,10 @@ namespace CGA.ViewModel
         {
             var objTask = Task.Run(() => ParseObj(fileName));
             var directory = Path.GetDirectoryName(fileName);
-            var normalsTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Normal.png"))));
-            var diffuseTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Diffuse.png"))));
-            var specularTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Specular.png"))));
-            var emissionTextureTask = Task.Run(() => SneakyThrows(() => LoadTexture(Path.Combine(directory, "Emission.png"))));
+            var normalsTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Normal.png")));
+            var diffuseTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Diffuse.png")));
+            var specularTextureTask = Task.Run(() =>LoadTexture(Path.Combine(directory, "Specular.png")));
+            var emissionTextureTask = Task.Run(() =>LoadTexture(Path.Combine(directory, "Emission.png")));
 
             var obj = objTask.GetAwaiter().GetResult();
             obj.NormalsTexture = normalsTextureTask.GetAwaiter().GetResult();
@@ -195,23 +195,24 @@ namespace CGA.ViewModel
 
         private static ColorBuffer LoadTexture(string path)
         {
-            var image = new BitmapImage(new Uri(path, UriKind.Relative))
-            {
-                CreateOptions = BitmapCreateOptions.None
-            };
-            return ColorBuffer.From(image);
-        }
-
-        private static T SneakyThrows<T>(Func<T> func) where T : class
-        {
             try
             {
-                return func();
-            } 
+                var image = new BitmapImage(new Uri(path, UriKind.Relative))
+                {
+                    CreateOptions = BitmapCreateOptions.None
+                };
+                var bitmap = new WriteableBitmap(new FormatConvertedBitmap(new WriteableBitmap(image), PixelFormats.Bgra32, null, 0));
+                var width = bitmap.PixelWidth;
+                var height = bitmap.PixelHeight;
+                var buffer = new ColorBuffer(width, height);
+                buffer.Read(bitmap);
+                return buffer;
+            }
             catch
             {
                 return null;
             }
+            
         }
 
         private void Repaint()

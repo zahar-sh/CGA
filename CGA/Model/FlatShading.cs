@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace CGA.Model
@@ -22,23 +23,21 @@ namespace CGA.Model
         public override void DrawModel()
         {
             ZBuffer.Reset();
-            var faces = Obj.GetTriangleFaces()
-                .Select(face => face.ToList())
+            var faces = Obj
+                .GetTriangleFaces()
                 .Where(IsFaceVisible)
                 .Select(GetFaceColorPoints);
-            faces.AsParallel()
-                .ForAll(face =>
+            _ = Parallel.ForEach(faces, face =>
+            {
+                foreach (var (X, Y, Z) in face.Points)
                 {
-                    foreach (var (X, Y, Z) in face.Points)
+                    if (Z <= ZBuffer[X, Y])
                     {
-                        if (Z <= ZBuffer[X, Y])
-                        {
-                            ZBuffer[X, Y] = Z;
-                            DrawPoint(X, Y, face.Color);
-                        }
+                        ZBuffer[X, Y] = Z;
+                        DrawPoint(X, Y, face.Color);
                     }
-                });
-
+                }
+            });
         }
 
         private (Color Color, IEnumerable<(int X, int Y, float Z)> Points) GetFaceColorPoints(IList<Vector3> face)

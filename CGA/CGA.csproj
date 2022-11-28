@@ -77,7 +77,6 @@
     <Compile Include="Model\LambertLighting.cs" />
     <Compile Include="Model\LightingType.cs" />
     <Compile Include="Model\Matrices.cs" />
-    <Compile Include="Model\Matrix.cs" />
     <Compile Include="Model\Obj.cs" />
     <Compile Include="Model\ObjParser.cs" />
     <Compile Include="Model\PainterType.cs" />

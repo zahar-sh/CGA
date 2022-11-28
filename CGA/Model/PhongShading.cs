@@ -3,6 +3,7 @@ using System.Linq;
 using System;
 using System.Numerics;
 using System.Windows.Media;
+using System.Threading.Tasks;
 
 namespace CGA.Model
 {
@@ -35,26 +36,25 @@ namespace CGA.Model
         public override void DrawModel()
         {
             ZBuffer.Reset();
-            var faces = Obj.GetTriangleFaces()
-                .Select(face => face.ToList())
+            var faces = Obj
+                .GetTriangleFaces()
                 .Where(IsFaceVisible)
                 .Select(face => (Face: face, Points: GetFaceColorPoints(face)));
-            faces.AsParallel()
-                .ForAll(face =>
+            _ = Parallel.ForEach(faces, face =>
+            {
+                foreach (var p in face.Points)
                 {
-                    foreach (var p in face.Points)
+                    if (p.Z <= ZBuffer[p.X, p.Y])
                     {
-                        if (p.Z <= ZBuffer[p.X, p.Y])
-                        {
-                            ZBuffer[p.X, p.Y] = p.Z;
+                        ZBuffer[p.X, p.Y] = p.Z;
 
-                            var color = IsTexturesEnabled ?
-                            GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
-                            Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
-                            DrawPoint(p.X, p.Y, Color);
-                        }
+                        var color = IsTexturesEnabled ?
+                        GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
+                        Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
+                        DrawPoint(p.X, p.Y, Color);
                     }
-                });
+                }
+            });
         }
 
         private IEnumerable<Point> GetFaceColorPoints(IList<Vector3> face)
@@ -72,8 +72,8 @@ namespace CGA.Model
             if (Obj.DiffuseTexture is null)
                 return Color.FromScRgb(0f, 0f, 0f, 0f);
 
-            var x = Convert.ToInt32(texel.X) * Obj.DiffuseTexture.Width;
-            var y = Convert.ToInt32(1 - texel.Y) * Obj.DiffuseTexture.Height;
+            var x = (int)(texel.X * Obj.DiffuseTexture.Width);
+            var y = (int)((1 - texel.Y) * Obj.DiffuseTexture.Height);
 
             if (x < 0 || y < 0)
                 return Color.FromScRgb(1f, 0f, 0f, 0f);

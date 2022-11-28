@@ -64,15 +64,15 @@ namespace CGA.Model
 
         public virtual void DrawModel()
         {
-            var faces = Obj.Faces
+            var points = Obj
+                .Faces
                 .Where(IsFaceVisible)
                 .SelectMany(GetFacePoints)
                 .Where(point => IsValidPoint(point.X, point.Y, point.Z));
-            faces.AsParallel()
-                .ForAll(point =>
-                {
-                    DrawPoint(point.X, point.Y, Color);
-                });
+            _ = Parallel.ForEach(points, point =>
+            {
+                DrawPoint(point.X, point.Y, Color);
+            });
         }
 
         public IEnumerable<(int X, int Y, float Z)> GetFacePoints(IList<Vector3> face)
@@ -145,9 +145,9 @@ namespace CGA.Model
                 z > 0 && z < 1;
         }
 
-        public void DrawPoint(int X, int Y, Color color)
+        public void DrawPoint(int x, int y, Color color)
         {
-            Buffer[X, Y] = color;
+            Buffer[x, y] = color;
         }
     }
 }
