@@ -9,7 +9,7 @@ namespace CGA.Model
 {
     public class PhongShading : Bresenham
     {
-        public PhongShading(Obj obj, ColorBuffer buffer, Color color, PhongLighting lighting, Matrix4x4? modelMatrix)
+        public PhongShading(Obj obj, ColorBuffer buffer, Color color, PhongLighting lighting, Vector3? emissionFactor, Matrix4x4? modelMatrix)
             : base(obj, buffer, color)
         {
             if (Obj.NormalsTexture != null && modelMatrix == null)
@@ -17,21 +17,34 @@ namespace CGA.Model
                 throw new NullReferenceException(nameof(modelMatrix));
             }
             Lighting = lighting;
+            EmissionFactor = emissionFactor;
+            ModelMatrix = modelMatrix;
             ZBuffer = new ZBuffer(buffer.Width, buffer.Height);
             IsTexturesEnabled = Obj.NormalsTexture != null || Obj.DiffuseTexture != null ||
                 Obj.EmissionTexture != null || Obj.SpecularTexture != null;
-            ModelMatrix = modelMatrix;
         }
-
-        public PhongLighting Lighting { get; }
 
         public ZBuffer ZBuffer { get; }
 
-        public Vector3 BrightnessFacor { get; }
+        public PhongLighting Lighting { get; }
+
+        public Vector3? EmissionFactor { get; }
 
         public Matrix4x4? ModelMatrix { get; }
 
         public bool IsTexturesEnabled { get; }
+
+        private static bool IsInvalidVector(Vector3 vector)
+        {
+            return float.IsNaN(vector.X) || float.IsInfinity(vector.X) ||
+                   float.IsNaN(vector.Y) || float.IsInfinity(vector.Y) ||
+                   float.IsNaN(vector.Z) || float.IsInfinity(vector.Z);
+        }
+
+        public static Vector3 From(Color color)
+        {
+            return new Vector3(color.R, color.G, color.B);
+        }
 
         public override void DrawModel()
         {
@@ -49,9 +62,9 @@ namespace CGA.Model
                         ZBuffer[p.X, p.Y] = p.Z;
 
                         var color = IsTexturesEnabled ?
-                        GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
-                        Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
-                        DrawPoint(p.X, p.Y, Color);
+                            GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
+                            Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
+                        DrawPoint(p.X, p.Y, color);
                     }
                 }
             });
@@ -69,38 +82,35 @@ namespace CGA.Model
 
         private Color GetPointColor(Vector3 normal, Vector3 texel)
         {
-            if (Obj.DiffuseTexture is null)
-                return Color.FromScRgb(0f, 0f, 0f, 0f);
+            if (Obj.DiffuseTexture is null ||
+                IsInvalidVector(normal) ||
+                IsInvalidVector(texel) ||
+                texel.X < 0 ||
+                (1 - texel.Y) < 0)
+            {
+                return Colors.Transparent;
+            }
 
             var x = (int)(texel.X * Obj.DiffuseTexture.Width);
             var y = (int)((1 - texel.Y) * Obj.DiffuseTexture.Height);
-
-            if (x < 0 || y < 0)
-                return Color.FromScRgb(1f, 0f, 0f, 0f);
-
             x %= Obj.DiffuseTexture.Width;
             y %= Obj.DiffuseTexture.Height;
 
-            if (Obj.NormalsTexture != null)
+            if (Obj.NormalsTexture != null && ModelMatrix.HasValue)
             {
                 var v = From(Obj.NormalsTexture[x, y]) * 2 - new Vector3(255);
                 normal = Vector3.Normalize(Vector3.TransformNormal(Vector3.Normalize(v), ModelMatrix.Value));
             }
 
-            var backgroundLighting = From(Obj.DiffuseTexture[x, y]) * Lighting.AmbientColor;
+            var backgroundLighting = From(Obj.DiffuseTexture[x, y]) * Lighting.AmbientFactor;
             var diffuseLighting = From(Obj.DiffuseTexture[x, y]) * Math.Max(Vector3.Dot(normal, Lighting.Position), 0);
             var reflectionVector = Vector3.Normalize(Vector3.Reflect(Lighting.Position, normal));
             var mirrorLighting = Obj.SpecularTexture is null ? Vector3.Zero :
-                From(Obj.SpecularTexture[x, y]) * (float)Math.Pow(Math.Max(0, Vector3.Dot(Lighting.Direction, reflectionVector)), Lighting.ShinessFactor);
-            var emissionLighting = Obj.EmissionTexture is null ? Vector3.Zero :
-                           From(Obj.EmissionTexture[x, y]) * Vector3.One;
+                (From(Obj.SpecularTexture[x, y]) * (float)Math.Pow(Math.Max(0, Vector3.Dot(Lighting.Direction, reflectionVector)), Lighting.ShinessFactor));
+            var emissionLighting = Obj.EmissionTexture is null && EmissionFactor.HasValue ? Vector3.Zero :
+                           (From(Obj.EmissionTexture[x, y]) * EmissionFactor.Value);
             var resultLighting = (backgroundLighting + diffuseLighting + mirrorLighting + emissionLighting) / 255f;
             return Color.FromScRgb(1f, resultLighting.X, resultLighting.Y, resultLighting.Z);
-        }
-
-        public Vector3 From(Color color)
-        {
-            return new Vector3(color.R, color.G, color.A);
         }
 
         private Color GetFaceColor(IList<Vector3> face, Color color)
@@ -144,10 +154,11 @@ namespace CGA.Model
                     var p1 = points.First();
                     var p2 = points.Last();
 
-                    float dz = p2.Z - p1.Z / Math.Abs(p2.X - p1.X);
-                    Vector3 dn = (p2.Normal - p1.Normal) / (p2.X - p1.X);
-                    Vector3 dt = (p2.Texel - p1.Texel) / (p2.X - p1.X);
-                    float dnw = (p2.NW - p1.NW) / (p2.X - p1.X);
+                    var dx = (p2.X - p1.X);
+                    var dz = (p2.Z - p1.Z) / Math.Abs(dx);
+                    var dn = (p2.Normal - p1.Normal) / dx;
+                    var dt = (p2.Texel - p1.Texel) / dx;
+                    var dnw = (p2.NW - p1.NW) / dx;
 
                     return Enumerable
                         .Range(p1.X, p2.X - p1.X)
@@ -207,27 +218,27 @@ namespace CGA.Model
 
         private IEnumerable<Point> GetLinePoints(Point p1, Point p2)
         {
-            int dx = Math.Abs(p2.X - p1.X);
-            int dy = Math.Abs(p2.Y - p1.Y);
-            float dz = Math.Abs(p2.Z - p1.Z);
+            var dx = Math.Abs(p2.X - p1.X);
+            var dy = Math.Abs(p2.Y - p1.Y);
+            var dz = Math.Abs(p2.Z - p1.Z);
 
-            int signX = Math.Sign(p2.X - p1.X);
-            int signY = Math.Sign(p2.Y - p1.Y);
-            int signZ = Math.Sign(p2.Z - p1.Z);
+            var signX = Math.Sign(p2.X - p1.X);
+            var signY = Math.Sign(p2.Y - p1.Y);
+            var signZ = Math.Sign(p2.Z - p1.Z);
 
-            int x = p1.X;
-            int y = p1.Y;
-            float z = p1.Z;
+            var x = p1.X;
+            var y = p1.Y;
+            var z = p1.Z;
 
-            float deltaZ = dz / dy;
+            var deltaZ = dz / dy;
 
-            int err = dx - dy;
+            var err = dx - dy;
 
             var normal = p1.Normal;
             var texel = p1.Texel;
             var nw = p1.NW;
 
-            bool isSameX = Math.Abs(p1.X - p2.X) < Math.Abs(p2.Y - p1.Y);
+            var isSameX = Math.Abs(p1.X - p2.X) < Math.Abs(p2.Y - p1.Y);
             var v = isSameX ? dy : dx;
             var dn = (p2.Normal - p2.Normal) / v;
             var dt = (p2.Texel - p1.Texel) / v;

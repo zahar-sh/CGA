@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using System.Numerics;
 using CGA1.Model;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace CGA.ViewModel
 {
@@ -174,8 +175,8 @@ namespace CGA.ViewModel
             var directory = Path.GetDirectoryName(fileName);
             var normalsTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Normal.png")));
             var diffuseTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Diffuse.png")));
-            var specularTextureTask = Task.Run(() =>LoadTexture(Path.Combine(directory, "Specular.png")));
-            var emissionTextureTask = Task.Run(() =>LoadTexture(Path.Combine(directory, "Emission.png")));
+            var specularTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Specular.png")));
+            var emissionTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Emission.png")));
 
             var obj = objTask.GetAwaiter().GetResult();
             obj.NormalsTexture = normalsTextureTask.GetAwaiter().GetResult();
@@ -212,7 +213,7 @@ namespace CGA.ViewModel
             {
                 return null;
             }
-            
+
         }
 
         private void Repaint()
@@ -244,7 +245,8 @@ namespace CGA.ViewModel
                     break;
                 case PainterType.PhongShading:
                     var lighting = GetPhongLighting();
-                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting, modelMatrix);
+                    var emissionFactor = new Vector3(8.0f, 8.0f, 8.0f);
+                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting, emissionFactor, modelMatrix);
                     phongShading.DrawModel();
                     break;
             }
@@ -268,7 +270,7 @@ namespace CGA.ViewModel
         {
             var pos = new Vector3(0, 0, 1);
             var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
-            var backgroundFactor = new Vector3(0.3f, 0.3f, 0.3f);
+            var backgroundFactor = new Vector3(0.2f, 0.2f, 0.2f);
             var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
             var mirrorFactor = new Vector3(0.3f, 0.3f, 0.3f);
             var ambientColor = new Vector3(255.0f, 255.0f, 0.0f);
