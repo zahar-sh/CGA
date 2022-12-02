@@ -87,7 +87,7 @@ namespace CGA.Model
             using (var e = args.GetEnumerator())
             {
                 var x = e.MoveNext() ? ParseFloat(e.Current) : throw new Exception();
-                var y = e.MoveNext() ? ParseFloat(e.Current) : throw new Exception();
+                var y = e.MoveNext() ? ParseFloat(e.Current) : 0.0f;
                 var z = e.MoveNext() ? ParseFloat(e.Current) : 0.0f;
                 return new Vector3(x, y, z);
             }

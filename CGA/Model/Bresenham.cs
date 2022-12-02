@@ -29,19 +29,19 @@ namespace CGA.Model
 
         protected Vector4 GetFacePoint(IList<Vector3> face, int i)
         {
-            int index = Convert.ToInt32(face[i].X);
+            var index = Convert.ToInt32(face[i].X);
             return Obj.Vertices[index];
         }
 
         protected Vector3 GetFaceTexture(IList<Vector3> face, int i)
         {
-            int index = Convert.ToInt32(face[i].Y);
+            var index = Convert.ToInt32(face[i].Y);
             return Obj.Textures[index];
         }
 
         protected Vector3 GetFaceNormal(IList<Vector3> face, int i)
         {
-            int index = Convert.ToInt32(face[i].Z);
+            var index = Convert.ToInt32(face[i].Z);
             return Obj.Normals[index];
         }
 
@@ -102,21 +102,21 @@ namespace CGA.Model
 
         public IEnumerable<(int X, int Y, float Z)> GetLinePoints(int x1, int y1, float z1, int x2, int y2, float z2)
         {
-            int dx = Math.Abs(x2 - x1);
-            int dy = Math.Abs(y2 - y1);
-            float dz = Math.Abs(z2 - z1);
+            var dx = Math.Abs(x2 - x1);
+            var dy = Math.Abs(y2 - y1);
+            var dz = Math.Abs(z2 - z1);
 
-            int signX = Math.Sign(x2 - x1);
-            int signY = Math.Sign(y2 - y1);
-            int signZ = Math.Sign(z2 - z1);
+            var signX = Math.Sign(x2 - x1);
+            var signY = Math.Sign(y2 - y1);
+            var signZ = Math.Sign(z2 - z1);
 
-            int x = x1;
-            int y = y1;
-            float z = z1;
+            var x = x1;
+            var y = y1;
+            var z = z1;
 
-            float deltaZ = dz / dy;
+            var deltaZ = dz / dy;
 
-            int err = dx - dy;
+            var err = dx - dy;
 
             while (x != x2 || y != y2)
             {
