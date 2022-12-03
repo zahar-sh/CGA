@@ -270,14 +270,14 @@ namespace CGA.ViewModel
         {
             var pos = new Vector3(0, 0, 1);
             var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
-            var backgroundFactor = new Vector3(0.2f, 0.2f, 0.2f);
+            var ambientFactor = new Vector3(0.5f, 0.5f, 0.5f);
             var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
-            var mirrorFactor = new Vector3(0.3f, 0.3f, 0.3f);
+            var specularFactor = new Vector3(0.2f, 0.2f, 0.2f);
             var ambientColor = new Vector3(255.0f, 255.0f, 0.0f);
-            var reflectionColor = new Vector3(255.0f, 255.0f, 255.0f);
+            var specularColor = new Vector3(255.0f, 255.0f, 255.0f);
             var shinessFactor = 32.0f;
-            return new PhongLighting(pos, direction, backgroundFactor, diffuseFactor,
-                mirrorFactor, ambientColor, reflectionColor, shinessFactor);
+            return new PhongLighting(pos, direction, ambientFactor, diffuseFactor,
+                specularFactor, ambientColor, specularColor, shinessFactor);
         }
 
         private static float ToRadians(float angle)

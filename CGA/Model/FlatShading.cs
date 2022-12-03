@@ -92,9 +92,9 @@ namespace CGA.Model
                     var (X1, Y1, Z1) = points.First();
                     var (X2, Y2, Z2) = points.Last();
 
-                    int dx = Math.Abs(X2 - X1);
-                    float dz = Z2 - Z1;
-                    float deltaZ = dz / dx;
+                    var dx = Math.Abs(X2 - X1);
+                    var dz = Z2 - Z1;
+                    var deltaZ = dz / dx;
 
                     return Enumerable
                         .Range(X1, X2 - X1)

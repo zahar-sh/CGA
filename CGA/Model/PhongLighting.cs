@@ -7,15 +7,15 @@ namespace CGA.Model
     public class PhongLighting : ILighting
     {
         public PhongLighting(Vector3 position, Vector3 direction, Vector3 ambientFactor, Vector3 diffuseFactor,
-            Vector3 mirrorFactor, Vector3 ambientColor, Vector3 reflectionColor, float shinessFactor)
+            Vector3 specularFactor, Vector3 ambientColor, Vector3 specularColor, float shinessFactor)
         {
-            Position = position;
-            Direction = direction;
+            Position = Vector3.Normalize(position);
+            Direction = Vector3.Normalize(direction);
             AmbientFactor = ambientFactor;
             DiffuseFactor = diffuseFactor;
-            MirrorFactor = mirrorFactor;
+            SpecularFactor = specularFactor;
             AmbientColor = ambientColor;
-            ReflectionColor = reflectionColor;
+            SpecularColor = specularColor;
             ShinessFactor = shinessFactor;
         }
 
@@ -23,20 +23,20 @@ namespace CGA.Model
         public Vector3 Direction { get; }
         public Vector3 AmbientFactor { get; }
         public Vector3 DiffuseFactor { get; }
-        public Vector3 MirrorFactor { get; }
+        public Vector3 SpecularFactor { get; }
         public Vector3 AmbientColor { get; }
-        public Vector3 ReflectionColor { get; }
+        public Vector3 SpecularColor { get; }
         public float ShinessFactor { get; }
 
         public Color GetPointColor(Vector3 normal, Color color)
         {
             var backgroundLighting = AmbientColor * AmbientFactor;
             var diffuseLighting = new Vector3(color.R, color.G, color.B) * DiffuseFactor *
-                Math.Max(Vector3.Dot(normal, Vector3.Normalize(Position)), 0);
+                Math.Max(Vector3.Dot(normal, Position), 0);
             var reflectionVector = Vector3.Normalize(Vector3.Reflect(Position, normal));
-            var mirrorLighting = ReflectionColor * MirrorFactor *
+            var specularLighting = SpecularColor * SpecularFactor *
                 (float)Math.Pow(Math.Max(Vector3.Dot(reflectionVector, Direction), 0), ShinessFactor);
-            var resultLighting = (backgroundLighting + diffuseLighting + mirrorLighting) / 255f;
+            var resultLighting = (backgroundLighting + diffuseLighting + specularLighting) / 255f;
             return Color.FromScRgb(1f, resultLighting.X, resultLighting.Y, resultLighting.Z);
         }
     }
