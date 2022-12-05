@@ -7,45 +7,31 @@ using System.Threading.Tasks;
 
 namespace CGA.Model
 {
-    public class PhongShading : Bresenham
+    public class PhongShading : FlatShading
     {
-        public PhongShading(Obj obj, ColorBuffer buffer, Color color, PhongLighting lighting, Vector3? emissionFactor, Matrix4x4? modelMatrix)
-            : base(obj, buffer, color)
+        public PhongShading(Obj obj, ColorBuffer buffer, Color color, PhongLighting lighting, Matrix4x4? modelMatrix, Vector3? emissionFactor)
+            : base(obj, buffer, color, lighting)
         {
             if (Obj.NormalsTexture != null && modelMatrix == null)
             {
                 throw new NullReferenceException(nameof(modelMatrix));
             }
-            Lighting = lighting;
-            EmissionFactor = emissionFactor;
+            if (Obj.EmissionTexture != null && emissionFactor == null)
+            {
+                throw new NullReferenceException(nameof(emissionFactor));
+            }
             ModelMatrix = modelMatrix;
-            ZBuffer = new ZBuffer(buffer.Width, buffer.Height);
-            IsTexturesEnabled = Obj.NormalsTexture != null || Obj.DiffuseTexture != null ||
-                Obj.EmissionTexture != null || Obj.SpecularTexture != null;
+            EmissionFactor = emissionFactor;
+            IsTexturesEnabled = false; //Obj.NormalsTexture != null || Obj.DiffuseTexture != null ||
+                                       // Obj.EmissionTexture != null || Obj.SpecularTexture != null;
         }
-
-        public ZBuffer ZBuffer { get; }
-
-        public PhongLighting Lighting { get; }
 
         public Vector3? EmissionFactor { get; }
 
         public Matrix4x4? ModelMatrix { get; }
 
         public bool IsTexturesEnabled { get; }
-
-        private static bool IsInvalidVector(Vector3 vector)
-        {
-            return float.IsNaN(vector.X) || float.IsInfinity(vector.X) ||
-                   float.IsNaN(vector.Y) || float.IsInfinity(vector.Y) ||
-                   float.IsNaN(vector.Z) || float.IsInfinity(vector.Z);
-        }
-
-        public static Vector3 From(Color color)
-        {
-            return new Vector3(color.R, color.G, color.B);
-        }
-
+       
         public override void DrawModel()
         {
             ZBuffer.Reset();
@@ -62,7 +48,7 @@ namespace CGA.Model
                         ZBuffer[p.X, p.Y] = p.Z;
 
                         var color = IsTexturesEnabled ?
-                            GetPointColor(p.Normal / p.NW, p.Texel / p.NW) :
+                            ((PhongLighting)Lighting).GetPointColor(Obj, p.Normal / p.NW, p.Texel / p.NW, ModelMatrix, EmissionFactor) :
                             Lighting.GetPointColor(p.Normal, GetFaceColor(face.Face, Color));
                         DrawPoint(p.X, p.Y, color);
                     }
@@ -78,58 +64,6 @@ namespace CGA.Model
             var pointsInFace = GetFaceIhnerPoints(points);
             points.AddRange(pointsInFace);
             return points;
-        }
-
-        private Color GetPointColor(Vector3 normal, Vector3 texel)
-        {
-            if (Obj.DiffuseTexture is null ||
-                IsInvalidVector(normal) ||
-                IsInvalidVector(texel) ||
-                texel.X < 0 ||
-                (1 - texel.Y) < 0)
-            {
-                return Colors.Transparent;
-            }
-
-            var x = (int)(texel.X * Obj.DiffuseTexture.Width);
-            var y = (int)((1 - texel.Y) * Obj.DiffuseTexture.Height);
-            x %= Obj.DiffuseTexture.Width;
-            y %= Obj.DiffuseTexture.Height;
-
-            if (Obj.NormalsTexture != null && ModelMatrix.HasValue)
-            {
-                var v = From(Obj.NormalsTexture[x, y]) * 2 - new Vector3(255);
-                normal = Vector3.Normalize(Vector3.TransformNormal(Vector3.Normalize(v), ModelMatrix.Value));
-            }
-
-            var backgroundLighting = From(Obj.DiffuseTexture[x, y]) * Lighting.AmbientFactor;
-            var diffuseLighting = From(Obj.DiffuseTexture[x, y]) * Math.Max(Vector3.Dot(normal, Lighting.Position), 0);
-            var reflectionVector = Vector3.Normalize(Vector3.Reflect(Lighting.Position, normal));
-            var mirrorLighting = Obj.SpecularTexture is null ? Vector3.Zero :
-                (From(Obj.SpecularTexture[x, y]) * (float)Math.Pow(Math.Max(0, Vector3.Dot(Lighting.Direction, reflectionVector)), Lighting.ShinessFactor));
-            var emissionLighting = Obj.EmissionTexture is null && EmissionFactor.HasValue ? Vector3.Zero :
-                           (From(Obj.EmissionTexture[x, y]) * EmissionFactor.Value);
-            var resultLighting = (backgroundLighting + diffuseLighting + mirrorLighting + emissionLighting) / 255f;
-            return Color.FromScRgb(1f, resultLighting.X, resultLighting.Y, resultLighting.Z);
-        }
-
-        private Color GetFaceColor(IList<Vector3> face, Color color)
-        {
-            var colors = face
-                .Select(f => Convert.ToInt32(f.Z))
-                .Select(index => Obj.Normals[index])
-                .Select(normal => Lighting.GetPointColor(normal, color))
-                .ToList();
-            return AverageColor(colors);
-        }
-
-        private Color AverageColor(IEnumerable<Color> colors)
-        {
-            var averageA = Convert.ToByte(colors.Select(color => (int)color.A).Average());
-            var averageR = Convert.ToByte(colors.Select(color => (int)color.R).Average());
-            var averageG = Convert.ToByte(colors.Select(color => (int)color.G).Average());
-            var averageB = Convert.ToByte(colors.Select(color => (int)color.B).Average());
-            return Color.FromArgb(averageA, averageR, averageG, averageB);
         }
 
         private IEnumerable<Point> GetFaceIhnerPoints(IEnumerable<Point> sidePoints)
@@ -161,8 +95,16 @@ namespace CGA.Model
                     var dnw = (p2.NW - p1.NW) / dx;
 
                     return Enumerable
-                        .Range(p1.X, p2.X - p1.X)
-                        .Select(x => new Point(x, y, x * dz, x * dnw, x * dn, x * dt));
+                        .Range(0, p2.X - p1.X)
+                        .Select(i =>
+                        {
+                            var x = i + p1.X;
+                            var z = i * dz + p1.Z;
+                            var nw = i * dnw + p1.NW;
+                            var n = i * dn + p1.Normal;
+                            var t = i * dt + p1.Texel;
+                            return new Point(x, y, z, nw, n, t);
+                        });
                 });
         }
 

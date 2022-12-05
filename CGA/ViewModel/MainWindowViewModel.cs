@@ -10,7 +10,6 @@ using System.Windows.Media.Imaging;
 using System.Numerics;
 using CGA1.Model;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 
 namespace CGA.ViewModel
 {
@@ -245,8 +244,12 @@ namespace CGA.ViewModel
                     break;
                 case PainterType.PhongShading:
                     var lighting = GetPhongLighting();
+                    model.NormalsTexture = null;
+                    model.DiffuseTexture = null;
+                    model.SpecularTexture = null;
+                    model.EmissionTexture = null;
                     var emissionFactor = new Vector3(8.0f, 8.0f, 8.0f);
-                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting, emissionFactor, modelMatrix);
+                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting, modelMatrix, emissionFactor);
                     phongShading.DrawModel();
                     break;
             }

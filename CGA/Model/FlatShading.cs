@@ -51,7 +51,7 @@ namespace CGA.Model
             return (color, points);
         }
 
-        private Color GetFaceColor(IList<Vector3> face, Color color)
+        protected Color GetFaceColor(IList<Vector3> face, Color color)
         {
             var colors = face
                 .Select(f => Convert.ToInt32(f.Z))
@@ -70,7 +70,7 @@ namespace CGA.Model
             return Color.FromArgb(averageA, averageR, averageG, averageB);
         }
 
-        private IEnumerable<(int X, int Y, float Z)> GetFaceIhnerPoints(IEnumerable<(int X, int Y, float Z)> sidePoints)
+        protected IEnumerable<(int X, int Y, float Z)> GetFaceIhnerPoints(IEnumerable<(int X, int Y, float Z)> sidePoints)
         {
             if (!sidePoints.Any())
                 return Enumerable.Empty<(int X, int Y, float Z)>();
@@ -93,12 +93,16 @@ namespace CGA.Model
                     var (X2, Y2, Z2) = points.Last();
 
                     var dx = Math.Abs(X2 - X1);
-                    var dz = Z2 - Z1;
-                    var deltaZ = dz / dx;
+                    var dz = (Z2 - Z1) / dx;
 
                     return Enumerable
-                        .Range(X1, X2 - X1)
-                        .Select(x => (X: x, Y: y, Z: x * deltaZ));
+                        .Range(0, X2 - X1)
+                        .Select(i =>
+                        {
+                            var x = i + X1;
+                            var z = i * dz + Z1;
+                            return (X: x, Y: y, Z: z);
+                        });
                 });
         }
     }
