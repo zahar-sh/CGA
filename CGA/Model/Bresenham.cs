@@ -22,7 +22,7 @@ namespace CGA.Model
 
         public Color Color { get; }
 
-        private Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
+        protected Vector3 GetNormal(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             return Vector3.Normalize(Vector3.Cross(v2 - v1, v3 - v1));
         }
@@ -45,7 +45,7 @@ namespace CGA.Model
             return Obj.Normals[index];
         }
 
-        private Vector3 GetFaceNormal(IList<Vector3> face)
+        protected Vector3 GetFaceNormal(IList<Vector3> face)
         {
             var p1 = GetFacePoint(face, 0);
             var p2 = GetFacePoint(face, 1);
@@ -56,7 +56,7 @@ namespace CGA.Model
             return GetNormal(v1, v2, v3);
         }
 
-        public bool IsFaceVisible(IList<Vector3> face)
+        protected bool IsFaceVisible(IList<Vector3> face)
         {
             var normal = GetFaceNormal(face);
             return normal.Z < 0;
@@ -64,18 +64,22 @@ namespace CGA.Model
 
         public virtual void DrawModel()
         {
-            var points = Obj
-                .Faces
-                .Where(IsFaceVisible)
-                .SelectMany(GetFacePoints)
-                .Where(point => IsValidPoint(point.X, point.Y, point.Z));
-            _ = Parallel.ForEach(points, point =>
+            _ = Parallel.ForEach(Obj.Faces, face =>
             {
-                DrawPoint(point.X, point.Y, Color);
+                if (IsFaceVisible(face))
+                {
+                    foreach (var p in GetFaceSidePoints(face))
+                    {
+                        if (IsValidPoint(p.X, p.Y, p.Z))
+                        {
+                            DrawPoint(p.X, p.Y, Color);
+                        }
+                    }
+                }
             });
         }
 
-        public IEnumerable<(int X, int Y, float Z)> GetFacePoints(IList<Vector3> face)
+        protected IEnumerable<Point> GetFaceSidePoints(IList<Vector3> face)
         {
             var lastFaceIndex = face.Count - 1;
             return Enumerable
@@ -85,44 +89,47 @@ namespace CGA.Model
                 .SelectMany(points => points);
         }
 
-        private IEnumerable<(int X, int Y, float Z)> GetSidePoints(IList<Vector3> face, int index1, int index2)
+        protected IEnumerable<Point> GetSidePoints(IList<Vector3> face, int index1, int index2)
         {
-            var v1 = GetFacePoint(face, index1);
-            var v2 = GetFacePoint(face, index2);
-
-            var x1 = Convert.ToInt32(v1.X);
-            var y1 = Convert.ToInt32(v1.Y);
-            var z1 = v1.Z;
-
-            var x2 = Convert.ToInt32(v2.X);
-            var y2 = Convert.ToInt32(v2.Y);
-            var z2 = v2.Z;
-            return GetLinePoints(x1, y1, z1, x2, y2, z2);
+            var p1 = GetPoint(face, index1);
+            var p2 = GetPoint(face, index2);
+            return GetLinePoints(p1, p2);
         }
 
-        public IEnumerable<(int X, int Y, float Z)> GetLinePoints(int x1, int y1, float z1, int x2, int y2, float z2)
+        protected virtual Point GetPoint(IList<Vector3> face, int index)
         {
-            var dx = Math.Abs(x2 - x1);
-            var dy = Math.Abs(y2 - y1);
-            var dz = Math.Abs(z2 - z1);
+            var v = GetFacePoint(face, index);
+            var x = Convert.ToInt32(v.X);
+            var y = Convert.ToInt32(v.Y);
+            return new Point(x, y, v.Z, 1, Vector3.Zero, Vector3.Zero);
+        }
 
-            var signX = Math.Sign(x2 - x1);
-            var signY = Math.Sign(y2 - y1);
-            var signZ = Math.Sign(z2 - z1);
+        protected IEnumerable<Point> GetLinePoints(Point p1, Point p2)
+        {
+            var x = p1.X;
+            var y = p1.Y;
+            var z = p1.Z;
+            var nw = p1.NW;
+            var n = p1.Normal;
+            var t = p1.Texel;
 
-            var x = x1;
-            var y = y1;
-            var z = z1;
+            var dx = Math.Abs(p2.X - p1.X);
+            var dy = Math.Abs(p2.Y - p1.Y);
+            var dz = (p2.Z - p1.Z) / dy;
+            var dnw = (p2.NW - p1.NW) / dy;
+            var dn = (p2.Normal - p1.Normal) / dy;
+            var dt = (p2.Texel - p1.Texel) / dy;
 
-            var deltaZ = dz / dy;
+            var signX = Math.Sign(p2.X - p1.X);
+            var signY = Math.Sign(p2.Y - p1.Y);
 
             var err = dx - dy;
 
-            while (x != x2 || y != y2)
+            while (x != p2.X || y != p2.Y)
             {
-                yield return (x, y, z);
+                yield return new Point(x, y, z, nw, n, t);
 
-                int err2 = err * 2;
+                var err2 = err * 2;
                 if (err2 > -dy)
                 {
                     err -= dy;
@@ -132,20 +139,23 @@ namespace CGA.Model
                 {
                     err += dx;
                     y += signY;
-                    z += signZ * deltaZ;
+                    z += dz;
+                    nw += dnw;
+                    n += dn;
+                    t += dt;
                 }
             }
-            yield return (x2, y2, z2);
+            yield return p2;
         }
 
-        public bool IsValidPoint(int x, int y, float z)
+        protected bool IsValidPoint(int x, int y, float z)
         {
             return x >= 0 && x < Buffer.Width &&
                 y >= 0 && y < Buffer.Height &&
                 z > 0 && z < 1;
         }
 
-        public void DrawPoint(int x, int y, Color color)
+        protected void DrawPoint(int x, int y, Color color)
         {
             Buffer[x, y] = color;
         }

@@ -6,19 +6,19 @@ namespace CGA.Model
 {
     public class LambertLighting : ILighting
     {
-        public LambertLighting(Vector3 position)
+        public LambertLighting(Vector3 lighitngDirection)
         {
-            Position = Vector3.Normalize(position);
+            LightingDirection = Vector3.Normalize(lighitngDirection);
         }
 
-        public Vector3 Position { get; }
+        public Vector3 LightingDirection { get; }
 
-        public Color GetPointColor(Vector3 normal, Color color)
+        public Color GetColor(Color color, Vector3 normal)
         {
-            var v = Math.Max(Vector3.Dot(normal, Position), 0);
-            var r = Convert.ToByte(color.R * v);
-            var g = Convert.ToByte(color.G * v);
-            var b = Convert.ToByte(color.B * v);
+            var v = Math.Max(Vector3.Dot(normal, LightingDirection), 0);
+            var r = (byte)(color.R * v);
+            var g = (byte)(color.G * v);
+            var b = (byte)(color.B * v);
             return Color.FromArgb(color.A, r, g, b);
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace CGA1.Model
+﻿namespace CGA.Model
 {
     public enum LightingType
     {

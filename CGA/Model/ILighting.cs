@@ -5,6 +5,6 @@ namespace CGA.Model
 {
     public interface ILighting
     {
-        Color GetPointColor(Vector3 normal, Color color);
+        Color GetColor(Color color, Vector3 normal);
     }
 }

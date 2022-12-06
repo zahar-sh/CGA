@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CGA"
         xmlns:vm="clr-namespace:CGA.ViewModel"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="MainWindow" Width="900" Height="600">
+        Title="MainWindow" Width="1080" Height="780">
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
@@ -30,6 +31,15 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -234,6 +244,100 @@
                 <RadioButton x:Name="phongRadioButton"
                              Content="Phong"
                              Checked="OnLightingTypeChanged"
+                             Margin="3"/>
+            </StackPanel>
+
+            <Label Content="AmbientColor"
+                   Grid.Column="0"
+                   Grid.Row="16"/>
+            <xctk:ColorPicker 
+                SelectedColor="{Binding AmbientColor, Mode=TwoWay}"
+                Margin="3"
+                Grid.Column="1" 
+                Grid.Row="16">
+            </xctk:ColorPicker>
+
+            <Label Content="DiffuseColor"
+                   Grid.Column="0"
+                   Grid.Row="17"/>
+            <xctk:ColorPicker 
+                SelectedColor="{Binding DiffuseColor, Mode=TwoWay}"
+                Margin="3"
+                Grid.Column="1" 
+                Grid.Row="17">
+            </xctk:ColorPicker>
+
+            <Label Content="SpecularColor"
+                   Grid.Column="0"
+                   Grid.Row="18"/>
+            <xctk:ColorPicker 
+                SelectedColor="{Binding SpecularColor, Mode=TwoWay}"
+                Margin="3"
+                Grid.Column="1" 
+                Grid.Row="18">
+            </xctk:ColorPicker>
+
+            <Label Content="AmbientFactor"
+                   Grid.Column="0"
+                   Grid.Row="19"/>
+            <Slider Value="{Binding AmbientFactor, Mode=TwoWay}" 
+                    Minimum="0" 
+                    Maximum="1" 
+                    SmallChange="0.1" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1" 
+                    Grid.Row="19"/>
+
+            <Label Content="DiffuseFactor"
+                   Grid.Column="0"
+                   Grid.Row="20"/>
+            <Slider Value="{Binding DiffuseFactor, Mode=TwoWay}" 
+                    Minimum="0" 
+                    Maximum="1" 
+                    SmallChange="0.1" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1" 
+                    Grid.Row="20"/>
+
+            <Label Content="SpecularFactor"
+                   Grid.Column="0"
+                   Grid.Row="21"/>
+            <Slider Value="{Binding SpecularFactor, Mode=TwoWay}" 
+                    Minimum="0" 
+                    Maximum="1" 
+                    SmallChange="0.1" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1" 
+                    Grid.Row="21"/>
+
+            <Label Content="ShinessFactor"
+                   Grid.Column="0"
+                   Grid.Row="22"/>
+            <Slider Value="{Binding ShinessFactor, Mode=TwoWay}" 
+                    Minimum="0" 
+                    Maximum="32" 
+                    SmallChange="4" 
+                    AutoToolTipPlacement="TopLeft"
+                    Grid.Column="1" 
+                    Grid.Row="22"/>
+            
+            <Label Content="Textures"
+                   Grid.Column="0"
+                   Grid.Row="23"/>
+            <StackPanel Grid.Column="1"
+                        Grid.Row="23"
+                        Grid.ColumnSpan="2">
+                <CheckBox x:Name="normalCheckBox" 
+                             Content="Normals"
+                             IsChecked="{Binding IsNormalTextureEnabled, Mode=TwoWay}"
+                             Margin="3"/>
+                <CheckBox x:Name="diffuseCheckBox"
+                             Content="Diffuse"
+                             IsChecked="{Binding IsDiffuseTextureEnabled, Mode=TwoWay}"
+                             Margin="3"/>
+                <CheckBox x:Name="specularCheckBox"
+                             Content="Specular"
+                             IsChecked="{Binding IsSpecularTextureEnabled, Mode=TwoWay}"
                              Margin="3"/>
             </StackPanel>
         </Grid>

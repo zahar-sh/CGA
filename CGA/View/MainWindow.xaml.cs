@@ -1,5 +1,5 @@
 ﻿using CGA.ViewModel;
-using CGA1.Model;
+using CGA.Model;
 using System.Windows;
 
 namespace CGA

@@ -4,12 +4,8 @@ using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
-using System.IO;
-using System;
 using System.Windows.Media.Imaging;
 using System.Numerics;
-using CGA1.Model;
-using System.Threading.Tasks;
 
 namespace CGA.ViewModel
 {
@@ -42,29 +38,57 @@ namespace CGA.ViewModel
         private float _cameraRoll;
 
         private Obj _obj;
-        private Color _color;
         private PainterType _painterType;
         private LightingType _lightingType;
 
+        private Color _ambientColor;
+        private Color _diffuseColor;
+        private Color _specularColor;
+
+        private float _ambientFactor;
+        private float _diffuseFactor;
+        private float _specularFactor;
+        private float _shinessFactor;
+
+        private bool _isNormalTextureEnabled;
+        private bool _isDiffuseTextureEnabled;
+        private bool _isSpecularTextureEnabled;
+
         public MainWindowViewModel()
         {
-            Width = 650;
-            Height = 550;
+            Width = 750;
+            Height = 650;
             ColorBuffer = new ColorBuffer(Width, Height);
-            Bitmap = CreateBitmap(Width, Height);
-            Fov = 60;
+            Bitmap = Utils.CreateBitmap(Width, Height);
+            Fov = 60.0f;
             ModelScale = 0.5f;
-            CameraPosZ = 10;
-            Color = Color.FromRgb(128, 128, 128);
+            CameraPosZ = 10.0f;
             PainterType = PainterType.Bresenham;
             LightingType = LightingType.Lambert;
-            FileDialog = new OpenFileDialog
+            AmbientColor = Colors.DarkGray;
+            DiffuseColor = Colors.Gray;
+            SpecularColor = Colors.LightYellow;
+            AmbientFactor = 0.1f;
+            DiffuseFactor = 0.5f;
+            SpecularFactor = 0.3f;
+            ShinessFactor = 32.0f;
+            IsNormalTextureEnabled = false;
+            IsDiffuseTextureEnabled = false;
+            IsSpecularTextureEnabled = false;
+
+            var fileDialog = new OpenFileDialog
             {
                 Filter = "Object | *.obj",
                 Title = "Select obj file",
                 Multiselect = false
             };
-            LoadObjCommand = new DelegateCommand(o => LoadObj());
+            LoadObjCommand = new DelegateCommand(o =>
+            {
+                if (fileDialog.ShowDialog().GetValueOrDefault(false))
+                {
+                    Obj = Utils.LoadObj(fileDialog.FileName);
+                }
+            });
             PropertyChanged += OnPropertyChanged;
         }
 
@@ -95,13 +119,23 @@ namespace CGA.ViewModel
         public float CameraRoll { get => _cameraRoll; set => SetProperty(ref _cameraRoll, value, nameof(CameraRoll)); }
 
         public Obj Obj { get => _obj; set => SetProperty(ref _obj, value, nameof(Obj)); }
-        public Color Color { get => _color; set => SetProperty(ref _color, value, nameof(Color)); }
         public PainterType PainterType { get => _painterType; set => SetProperty(ref _painterType, value, nameof(PainterType)); }
         public LightingType LightingType { get => _lightingType; set => SetProperty(ref _lightingType, value, nameof(LightingType)); }
 
-        public ICommand LoadObjCommand { get; }
+        public Color AmbientColor { get => _ambientColor; set => SetProperty(ref _ambientColor, value, nameof(AmbientColor)); }
+        public Color DiffuseColor { get => _diffuseColor; set => SetProperty(ref _diffuseColor, value, nameof(DiffuseColor)); }
+        public Color SpecularColor { get => _specularColor; set => SetProperty(ref _specularColor, value, nameof(SpecularColor)); }
 
-        private FileDialog FileDialog { get; }
+        public float AmbientFactor { get => _ambientFactor; set => SetProperty(ref _ambientFactor, value, nameof(AmbientFactor)); }
+        public float DiffuseFactor { get => _diffuseFactor; set => SetProperty(ref _diffuseFactor, value, nameof(DiffuseFactor)); }
+        public float SpecularFactor { get => _specularFactor; set => SetProperty(ref _specularFactor, value, nameof(SpecularFactor)); }
+        public float ShinessFactor { get => _shinessFactor; set => SetProperty(ref _shinessFactor, value, nameof(ShinessFactor)); }
+
+        public bool IsNormalTextureEnabled { get => _isNormalTextureEnabled; set => SetProperty(ref _isNormalTextureEnabled, value, nameof(IsNormalTextureEnabled)); }
+        public bool IsDiffuseTextureEnabled { get => _isDiffuseTextureEnabled; set => SetProperty(ref _isDiffuseTextureEnabled, value, nameof(IsDiffuseTextureEnabled)); }
+        public bool IsSpecularTextureEnabled { get => _isSpecularTextureEnabled; set => SetProperty(ref _isSpecularTextureEnabled, value, nameof(IsSpecularTextureEnabled)); }
+
+        public ICommand LoadObjCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -127,7 +161,7 @@ namespace CGA.ViewModel
             {
                 case nameof(Width):
                 case nameof(Height):
-                    Bitmap = CreateBitmap(Width, Height);
+                    Bitmap = Utils.CreateBitmap(Width, Height);
                     ColorBuffer = new ColorBuffer(Width, Height);
                     Repaint();
                     break;
@@ -150,69 +184,28 @@ namespace CGA.ViewModel
                 case nameof(CameraPitch):
                 case nameof(CameraRoll):
                 case nameof(Obj):
-                case nameof(Color):
                 case nameof(PainterType):
                 case nameof(LightingType):
+                case nameof(AmbientColor):
                     Repaint();
                     break;
+                case nameof(DiffuseColor):
+                case nameof(SpecularColor):
+                case nameof(AmbientFactor):
+                case nameof(DiffuseFactor):
+                case nameof(SpecularFactor):
+                case nameof(ShinessFactor):
+                    if (LightingType == LightingType.Phong)
+                        Repaint();
+                    break;
+
+                case nameof(IsNormalTextureEnabled):
+                case nameof(IsDiffuseTextureEnabled):
+                case nameof(IsSpecularTextureEnabled):
+                    if (LightingType == LightingType.Phong)
+                        Repaint();
+                    break;
             }
-        }
-
-        private void LoadObj()
-        {
-            var open = FileDialog.ShowDialog() ?? false;
-            if (open)
-            {
-                var fileName = FileDialog.FileName;
-                Obj = LoadObj(fileName);
-            }
-        }
-
-        private static Obj LoadObj(string fileName)
-        {
-            var objTask = Task.Run(() => ParseObj(fileName));
-            var directory = Path.GetDirectoryName(fileName);
-            var normalsTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Normal.png")));
-            var diffuseTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Diffuse.png")));
-            var specularTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Specular.png")));
-            var emissionTextureTask = Task.Run(() => LoadTexture(Path.Combine(directory, "Emission.png")));
-
-            var obj = objTask.GetAwaiter().GetResult();
-            obj.NormalsTexture = normalsTextureTask.GetAwaiter().GetResult();
-            obj.DiffuseTexture = diffuseTextureTask.GetAwaiter().GetResult();
-            obj.SpecularTexture = specularTextureTask.GetAwaiter().GetResult();
-            obj.EmissionTexture = emissionTextureTask.GetAwaiter().GetResult();
-            return obj;
-        }
-
-        private static Obj ParseObj(string fileName)
-        {
-            using (var reader = new StreamReader(new FileStream(fileName, FileMode.Open)))
-            {
-                return ObjParser.Parse(reader);
-            }
-        }
-
-        private static ColorBuffer LoadTexture(string path)
-        {
-            try
-            {
-                var image = new BitmapImage(new Uri(path, UriKind.Relative))
-                {
-                    CreateOptions = BitmapCreateOptions.None
-                };
-                var bitmap = new WriteableBitmap(new FormatConvertedBitmap(new WriteableBitmap(image), PixelFormats.Bgra32, null, 0));
-                var width = bitmap.PixelWidth;
-                var height = bitmap.PixelHeight;
-                var buffer = new ColorBuffer(width, height);
-                buffer.Read(bitmap);
-                return buffer;
-            }
-            catch
-            {
-                return null;
-            }
-
         }
 
         private void Repaint()
@@ -221,11 +214,11 @@ namespace CGA.ViewModel
                 return;
 
             var viewportMatrix = Matrices.CreateViewportMatrix(0, 0, Width, Height);
-            var projectionMatrix = Matrices.CreateProjectionByAspect(ToRadians(Fov), (float)Width / Height, 0.1f, 100.0f);
+            var projectionMatrix = Matrices.CreateProjectionByAspect(Utils.ToRadians(Fov), (float)Width / Height, 0.1f, 100.0f);
             var viewMatrix = Matrices.CreateViewMatrix(CameraPosX, CameraPosY, CameraPosZ,
-                ToRadians(CameraYaw), ToRadians(CameraPitch), ToRadians(CameraRoll));
+                Utils.ToRadians(CameraYaw), Utils.ToRadians(CameraPitch), Utils.ToRadians(CameraRoll));
             var modelMatrix = Matrices.CreateModelMatrix(ModelPosX, ModelPosY, ModelPosZ,
-                ToRadians(ModelYaw), ToRadians(ModelPitch), ToRadians(ModelRoll), ModelScale);
+                Utils.ToRadians(ModelYaw), Utils.ToRadians(ModelPitch), Utils.ToRadians(ModelRoll), ModelScale);
 
             var model = Obj.Transform(viewportMatrix, projectionMatrix, viewMatrix, modelMatrix);
 
@@ -234,22 +227,15 @@ namespace CGA.ViewModel
             switch (PainterType)
             {
                 case PainterType.Bresenham:
-                    var bresenham = new Bresenham(model, ColorBuffer, Color);
+                    var bresenham = new Bresenham(model, ColorBuffer, AmbientColor);
                     bresenham.DrawModel();
                     break;
                 case PainterType.FlatShading:
-                    var lightning = GetLighting();
-                    var flatShading = new FlatShading(model, ColorBuffer, Color, lightning);
+                    var flatShading = new FlatShading(model, ColorBuffer, AmbientColor, GetLighting());
                     flatShading.DrawModel();
                     break;
                 case PainterType.PhongShading:
-                    var lighting = GetPhongLighting();
-                    model.NormalsTexture = null;
-                    model.DiffuseTexture = null;
-                    model.SpecularTexture = null;
-                    model.EmissionTexture = null;
-                    var emissionFactor = new Vector3(8.0f, 8.0f, 8.0f);
-                    var phongShading = new PhongShading(model, ColorBuffer, Color, lighting, modelMatrix, emissionFactor);
+                    var phongShading = new PhongShading(model, ColorBuffer, AmbientColor, GetLighting(), modelMatrix);
                     phongShading.DrawModel();
                     break;
             }
@@ -261,36 +247,26 @@ namespace CGA.ViewModel
             switch (LightingType)
             {
                 case LightingType.Lambert:
-                    return new LambertLighting(new Vector3(0, 0, 1));
+                    var lightingDirection = new Vector3(0.5f);
+                    return new LambertLighting(lightingDirection);
                 case LightingType.Phong:
                     return GetPhongLighting();
                 default:
-                    return null;
+                    throw new InvalidEnumArgumentException(nameof(LightingType));
             }
         }
 
         private PhongLighting GetPhongLighting()
         {
-            var pos = new Vector3(0, 0, 1);
-            var direction = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
-            var ambientFactor = new Vector3(0.5f, 0.5f, 0.5f);
-            var diffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
-            var specularFactor = new Vector3(0.2f, 0.2f, 0.2f);
-            var ambientColor = new Vector3(255.0f, 255.0f, 0.0f);
-            var specularColor = new Vector3(255.0f, 255.0f, 255.0f);
-            var shinessFactor = 32.0f;
-            return new PhongLighting(pos, direction, ambientFactor, diffuseFactor,
-                specularFactor, ambientColor, specularColor, shinessFactor);
-        }
-
-        private static float ToRadians(float angle)
-        {
-            return (float)(angle / 180 * Math.PI);
-        }
-
-        private static WriteableBitmap CreateBitmap(int width, int height)
-        {
-            return new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            var lightingDirection = new Vector3(0.5f);
+            var viewerDirection = -new Vector3(CameraPosX, CameraPosY, CameraPosZ);
+            var ambientFactor = new Vector3(AmbientFactor);
+            var diffuseFactor = new Vector3(DiffuseFactor);
+            var specularFactor = new Vector3(SpecularFactor);
+            var diffuseColor = Utils.AsVector(DiffuseColor);
+            var specularColor = Utils.AsVector(SpecularColor);
+            return new PhongLighting(lightingDirection, viewerDirection, ambientFactor, diffuseFactor, specularFactor, 
+                diffuseColor, specularColor, ShinessFactor, IsNormalTextureEnabled, IsDiffuseTextureEnabled, IsSpecularTextureEnabled);
         }
     }
 }
